@@ -1,0 +1,217 @@
+﻿@model PosterDelivery.Utility.EntityModel.ProductsModel
+@using Newtonsoft.Json
+@{
+    ViewData["Title"] = "Scan delivery items";
+}
+<head>
+    <link href="~/Kendo/Content/loading/loading.css" rel="stylesheet" />
+    <script src="~/Kendo/Content/loading/loading.js"></script>
+    <script src="~/js/PhoneMask.js"></script>
+</head>
+<div class="col-md-12 p-0">
+    <div class="row">
+        <div class="col-md-8 mb-3">
+            <input type="text" id="txtscancode" style="width: 70%;z-index:10;" placeholder="Scan items to deliver..." class="k-textbox" />
+        </div>
+        <div id="dvScanComplete" class="mb-3">
+            <button id="btnSearch" class="btn btn-sm btn-info" onclick="AddScannedItem()" style="z-index:10;"><i class="fa" style="color:white;"></i> Scanning complete</button>
+        </div>
+
+        <div id="dvScanFinish" class="mb-3">
+            <button id="btnFinish" class="btn btn-sm btn-info" onclick="ConfirmFinish()" style="z-index:10;"><i class="fa" style="color:white;"></i> Finish</button>
+        </div>
+        @*<div id="dvMovenext" class="col-md-2 mb-3">
+        <button id="btnSearch" class="btn btn-sm btn-info" onclick="AddScannedItem()" style="margin-right:10px;z-index:10;"><i class="fa" style="color:white;"></i> Move next</button>
+        </div>*@
+    </div>
+    <div class="box box-primary" style="margin-top:30px;">
+        @*		<div class="form-inline float-right">
+        </div>
+        *@
+        <div class="box-header with-border">
+            <h3 class="box-title">@ViewBag.Title - @Model.CustomerName (#@Model.CustomerId)</h3>
+        </div>
+
+        <div class="box-body">
+            <div id="ScanningList"></div>
+        </div>
+    </div>
+</div>
+
+<div id="confirmFinishModal" class="modal" role="dialog">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" style="font-family: Gilroy; font-weight: 600;">Confirmation</h4>
+            </div>
+            <div class="modal-body">
+                <form class="col-md-12 form-horizontal">
+                    <div class="form-group">
+                        <h5 style="font-family: Gilroy; font-weight: 500;">Are you sure, You want to finish delivery without scanning?</h5>
+                    </div>
+
+                    <button type="button" id="btnYes" onclick="FinishScan()" class="btn btn-success" style="font-family: Gilroy; font-weight: 600; font-size: 18px; background-color: #ffc107; border: none;">Yes</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal" style="font-family: Gilroy; font-weight: 600; font-size: 18px; background-color: red; color: #fff; border: none;">Close</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var gridDataSource;
+
+    $(function () {
+        // Focus on load
+        $('#txtscancode').focus();
+        // Force focus
+        $('#txtscancode').focusout(function () {
+            $('#txtscancode').focus();
+        });
+        // Ajax Stuff
+        $('#txtscancode').change(function () {
+            //	var productsData = '@Model.lstProductDetils[0].ProductId';
+            //console.log(productsData);
+            var productsData = @Html.Raw(JsonConvert.SerializeObject(Model.lstProductDetils));
+            console.log(productsData);
+            var item = productsData.filter(x => x.ProductSerial === $('#txtscancode').val());
+            if (item.length > 0) {
+                $("#dvMovenext").hide();
+                $("#btnSearch").show();
+                $("#btnFinish").hide();
+                var grid = $("#ScanningList").data("kendoGrid");
+                grid.dataSource.insert({ ProductId: item[0].ProductId, ProductSerial: $('#txtscancode').val(), ProdctName: item[0].ProductName, ProductPrice: item[0].ProductPrice });
+            }
+            else {
+                swal("Oops", "Invalid scan", "error");
+            }
+            $('#txtscancode').val('').focus();
+        });
+    });
+    $(document).ready(function () {
+
+        $("#btnSearch").hide();
+
+        //This is for test purpose
+        //var dummydata = [{ ProductId: "1", ProductSerial: "XY1234", ProdctName: "Test", ProductPrice: "5" },
+        //{ ProductId: "3", ProductSerial: "123456", ProdctName: "Test Product", ProductPrice: "10" },
+        //{ ProductId: "3", ProductSerial: "123456", ProdctName: "Test Product", ProductPrice: "10" },
+        //{ ProductId: "4", ProductSerial: "n221c72c0106", ProdctName: "NETUM 2D Mini Barcode Scanner", ProductPrice: "64" },
+        //				]
+
+        $("#ScanningList").kendoGrid({
+            //dataSource: dummydata,
+            scrollable: true,
+            filterable: true,
+            pageable: {
+                refresh: true,
+                input: true,
+                pageSize: 20,
+                numeric: false,
+                pageSizes: [20, 50, 100, 200],
+                message: {
+                    empty: 'No Data',
+                    allPages: 'All'
+                }
+            },
+            sortable: true,
+            columns: [
+                { field: "ProductId", title: "Product Id", width: 100, media: "(min-width: 100px;)", filterable: false, hidden: false },
+                { field: "ProductSerial", title: "Product Serial", width: 100, media: "(min-width: 100px;)", filterable: false },
+                { field: "ProdctName", title: "Product Name", width: 100, media: "(min-width: 100px;)", filterable: false },
+                { field: "ProductPrice", title: "Product Price", width: 100, media: "(min-width: 100px;)", filterable: false },
+            ]
+        });
+    });
+
+    function AddScannedItem() {
+        var dataSource = $("#ScanningList").data("kendoGrid").dataSource;
+        var filteredDataSource = new kendo.data.DataSource({
+            data: dataSource.data(),
+            filter: dataSource.filter()
+        });
+
+        filteredDataSource.read();
+        var data = filteredDataSource.view();
+
+        var gridData = [];
+
+        for (var i = 0; i < data.length; i++) {
+            gridData.push({
+                customerId: '@Model.CustomerId',
+                DriverCustomerTrackId: '@Model.DriverCustomerTrackId',
+                ProductId: data[i].ProductId
+            })
+        }
+
+        Loading(true);
+        $.ajax({
+            type: "POST",
+            url: "/ShipmentTracking/CaptureDeliveryScan",
+            data: JSON.stringify(gridData),
+            dataType: "json",
+            contentType: "application/json",
+            success: function (respose) {
+                Loading(false);
+                console.log(respose);
+                if (respose.output === "Success") {
+                    swal("Success", respose.msg, "success");
+
+                    if ('@ViewBag.UserRole' == 'Driver') {
+                        window.location.href = "/ShipmentTracking/PendingStoresForDriver";
+                    }
+                    else {
+                        window.location.href = "/ShipmentTracking/ProgressStores";
+                    }
+                    return false;
+                }
+                else {
+                    swal("Oops", respose.msg, "error");
+                    return false;
+                }
+            },
+            error: function (respose) {
+                Loading(false);
+                swal("Oops!", respose.msg, "error");
+                return false;
+            },
+        });
+
+    }
+
+    var ConfirmFinish = function () {
+        $('#confirmFinishModal').modal();
+    }
+
+    function FinishScan() {
+        Loading(true);
+        $.ajax({
+            type: "POST",
+            url: "/ShipmentTracking/FinishScan?customerId=" + '@Model.CustomerId' + "&driverCustomerTrackId=" + '@Model.DriverCustomerTrackId',
+            dataType: "json",
+            contentType: "application/json",
+            success: function (response) {
+                Loading(false);
+                if (response.output === "Success") {
+                    swal("Success", response.msg, "success");
+                    if ('@ViewBag.UserRole' == 'Driver') {
+                        window.location.href = "/ShipmentTracking/PendingStoresForDriver";
+                    }
+                    else {
+                        window.location.href = "/ShipmentTracking/ProgressStores";
+                    }
+                }
+                else {
+                    swal("Oops", response.msg, "error");
+                    return false;
+                }
+            },
+            error: function (response) {
+                Loading(false);
+                swal("Oops!", response.msg, "error");
+                return false;
+            },
+        });
+    }
+
+</script>

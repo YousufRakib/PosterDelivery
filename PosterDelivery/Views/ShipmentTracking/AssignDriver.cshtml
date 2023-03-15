@@ -1,0 +1,583 @@
+﻿<style>
+    @@media (max-width: 767px) 
+    {
+        colgroup col:nth-child(3), colgroup col:nth-child(4), colgroup col:nth-child(5) {
+            width: 0px !important;
+        }
+        colgroup col:nth-child(6), colgroup col:nth-child(7) {
+            width: 35px !important;
+        }
+        colgroup col:nth-child(7) {
+            width: 60px !important;
+        }
+        colgroup col:nth-child(2) {
+            width: 80px !important;
+        }
+        colgroup col:nth-child(1) {
+            width: 70px !important;
+        }
+        colgroup col:nth-child(8) {
+            width: 70px !important;
+        }
+        colgroup col:nth-child(9) {
+            width: 40px !important;
+        }
+        .k-grid-header th.k-with-icon .k-link {
+            margin-right: 1.3em !important;
+            font-family: Gilroy !important;
+            font-size: 6px !important;
+        }
+        .btn {
+            font-size: 6px !important;
+            font-family: Gilroy;
+        }
+        .k-grid table {
+            font-size: 6px !important;
+        }
+        .table td.fit,
+        .table th.fit {
+            white-space: nowrap;
+            width: 0.1%;
+        }
+        span.k-icon.k-i-calendar {
+            background-size: 322px 330px !important;
+        }
+        span.k-icon.k-i-arrow-s {
+            background-size: 297px 329px !important;
+        }
+        .k-grid-header th.k-header {
+            vertical-align: middle;
+            font-family: Gilroy;
+            font-size: 6px;
+        }
+        ,
+        .k-grid-header {
+            position: sticky;
+            top: 0px;
+            z-index: 1000;
+        }
+        .k-state-hover > .k-select {
+            border-color: #b6bdca;
+            overflow: hidden !important;
+            width: 21% !important;
+        }
+    }
+    .k-grid-header {
+        position: sticky;
+        top: 0px;
+        z-index: 1000;
+    }
+
+    .isGreen {
+        background-color: lawngreen !important;
+        font-weight: bold !important;
+    }
+</style>
+
+@{
+    //ViewBag.Title = "Assign Driver";
+}
+
+<div class="col-md-12 p-0">
+    <div class="box box-primary">
+
+        <div class="box-header with-border">
+            <h3 class="box-title">@ViewBag.Title</h3>
+            <div style="float: right">
+                <button class="btn" id="btnExport">
+                    <img src="~/images/icons/file-excel.svg" title="Export Pending Stores List" alt="Export Pending Stores List" style="width: 40px; height: 35px">
+                </button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <br />
+            <div class="row">
+                <div class="col-md-7">
+                </div>
+                <div class="col-md-5">
+                    <div class="row">
+                        <div class="col-md-5">
+                        </div>
+                        <div class="col-md-4">
+                            <input id="searchBox" class="form-control" style="padding-left: 2%;" placeholder="Search..." />
+                            @*<input type="search" id="searchBox" style="width: 300px;z-index:10;margin-right:10px" placeholder="Search..." class="k-textbox" />*@
+                        </div>
+                        <div class="col-md-2">
+                            <button id="btnSearch" class="btn btn-sm btn-info">Search</button>
+                            @*<button id="btnSearch" class="btn btn-sm btn-info" style="margin-right:10px;z-index:10;"><i class="fa fa-search" style="color:white"></i> Search</button>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="box-body">
+            <div id="CustomerList"></div>
+        </div>
+    </div>
+</div>
+
+@*<script id="actionTemplate" type="text/x-kendo-template">
+    <a id="update" style="font-size:11px; text-decoration: none;" target="_self" href="javascript:AssignDriver(#= customerId #, #= driverCustomerTrackId #, #= deliveryDay #, #= userDriverId #)" class="btn btn-small btn-info">Update</a>
+</script>*@
+
+<script type="text/javascript">
+
+    //var url = "/ShipmentTracking/GetDateWisePendingStores";
+    var url = "/ShipmentTracking/GetAssignDriver";
+    var getDriverURL = "/ShipmentTracking/GetDrivers";
+
+    $(document).ready(function () {
+        //$("#deliveryDate").kendoDatePicker({
+        //    format: "yyyy-MM-dd",
+        //    value: new Date(),
+        //    min: new Date()
+        //});
+
+        //var deliveryDate = $('#deliveryDate').val();
+
+        $(".box-title").html("Assign Driver");
+
+        shipmentTrackingGrid();
+    });
+
+    //function searchDateWisePendingStores() {
+    //    $("#searchForm").validate({
+    //        rules: {
+    //            deliveryDate: "required"
+    //        },
+    //        messages: {
+    //            deliveryDate: "Please select date!!"
+    //        },
+    //        errorElement: "div"
+    //    });
+
+    //    if ($("#searchForm").valid()) {
+    //        var deliveryDate = $("#deliveryDate").val();
+    //        shipmentTrackingGrid(deliveryDate);
+    //    }
+    //}
+
+    function shipmentTrackingGrid() {
+        $.ajax({
+            type: "GET",
+            url: url,
+            //data: { 'deliveryDate': deliveryDate },
+            success: function (response) {
+                console.log(response);
+                var gridDataSource = response.returnvalue;
+                $("#CustomerList").kendoGrid({
+                    dataSource: gridDataSource,
+                    scrollable: true,
+                    filterable: true,
+                    selectable: true,
+                    resizable: true,
+                    editable: true,
+                    pageable: {
+                        refresh: true,
+                        input: true,
+                        pageSize: 20,
+                        numeric: false,
+                        pageSizes: [20, 50, 100, 200]
+                    },
+                    sortable: true,
+                    columns: [
+                        { 
+                            field: "customerId",
+                            title: "Customer Id",
+                            width: 100,
+                            media: "(min-width: 100px;)",
+                            filterable: false,
+                            hidden: true ,
+                            attributes: { "id": 'customer#= customerId#' }
+                        },
+                        { field: "driverCustomerTrackId", title: "DriverCustomerTrackId", width: 100, media: "(min-width: 100px;)", filterable: false, hidden: true, editable: false },
+                        { field: "accountName", title: "Account Name", width: 100, media: "(min-width: 100px;)", filterable: { extra: false }, type: "string", editable: false },
+                        { field: "shippingStreet", title: "Shipping Street", width: 100, media: "(min-width: 100px;)", filterable: { extra: false }, type: "string", editable: false },
+                        { field: "shippingCity", title: "Shipping City", width: 100, media: "(min-width: 100px;)", filterable: { extra: false }, type: "string", editable: false },
+                        { field: "shippingState", title: "Shipping State", width: 100, media: "(min-width: 100px;)", filterable: { extra: false }, type: "string", editable: false },
+                        { field: "shippingCode", title: "Shipping Code", width: 100, media: "(min-width: 100px;)", filterable: { extra: false }, type: "string", editable: false },
+                        { field: "deliveryDay", title: "Delivery Day", width: 100, media: "(min-width: 100px;)", filterable: false, hidden: true },
+                        { field: "numOfPosters", title: "Number Of Posters", width: 100, media: "(min-width: 100px;)", type: "number", editable: false, filterable: { extra: false } },
+                        {
+                            field: "actualDateString", title: "Next Delivery Date ", width: 100, media: "(min-width: 100px;)",
+                            filterable: {
+                                operators: {
+                                    string: {
+                                        eq: "Equal to",
+                                        neq: "Not equal to"
+                                    }
+                                },
+                                extra: false
+                            },
+                            type: "date",
+                            format: "{0: yyyy-MM-dd}",
+                            validation: { min: new Date() },
+                            editable: true
+                        },
+                        { field: "userName", title: "Driver", width: 100, media: "(min-width: 100px;)", editor: drivers, filterable: { extra: false }, type: "string" },
+                        {
+                            field: "userDriverId",
+                            title: "Select Driver",
+                            width: "100px",
+                            hidden: true
+                        },
+                        //{
+                        //    title: "Action", width: 100, media: "(min-width: 100px;)",
+                        //    template: "<a id='btn#= customerId#' style='display:none; font-size: 11px; text-decoration: none;' href='javascript:AssignDriver(#=customerId#)' class='btn btn-small btn-info'>Update</a>"
+                        //},
+                    ],
+                    edit: function (e) {
+                        var input = e.container.find("input");
+                        setTimeout(function () {
+                            input.select();
+                        }, 25);
+                        var columnIndex = this.cellIndex(e.container);
+                        var fieldName = this.thead.find("th").eq(columnIndex).data("field");
+                    },
+                    save: function (e) {
+                        if (e.values.actualDateString) {
+                            var userDriverId = +e.model.userDriverId;
+                            if (userDriverId != 0) {
+                                //$("#btn" + e.model.customerId).show();
+                                AssignDriver(e.model.customerId, e.values.actualDateString)
+                            }
+                        }
+
+                        //if (e.values.userName) {
+                        //    var userName = +e.model.userName;
+                        //    $("#btn" + e.model.customerId).show();
+                        //}
+
+                        //if (e.values.deliveryDay) {
+
+                        //    var deliveryDay = +e.values.deliveryDay;
+                        //    let dateObj = new Date();
+                        //    let nextMonth = new Date();
+                        //    var day = dateObj.getDate();
+
+                        //    if (parseInt(deliveryDay) < parseInt(day))
+                        //    {
+                        //        nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+                        //        e.model.fields["deliveryDay"].editable = true;
+                        //        e.model.set("deliveryDay", deliveryDay);
+                        //        e.values.deliveryDay = deliveryDay;
+
+                        //        const month = nextMonth.toLocaleString('default', { month: 'long' });
+                        //        var year = nextMonth.getUTCFullYear();
+                        //        var newdate = deliveryDay + " " + month + ", " + year;
+
+                        //        e.model.fields["actualDateString"].editable = true;
+                        //        e.model.set("actualDateString", newdate);
+                        //        e.model.fields["actualDateString"].editable = false;
+                        //    }
+                        //    else
+                        //    {
+                        //        e.model.fields["deliveryDay"].editable = true;
+                        //        e.model.set("deliveryDay", deliveryDay);
+                        //        e.values.deliveryDay = deliveryDay;
+
+                        //        const month = dateObj.toLocaleString('default', { month: 'long' });
+                        //        var year = dateObj.getUTCFullYear();
+                        //        var newdate = deliveryDay + " " + month + ", " + year;
+
+                        //        e.model.fields["actualDateString"].editable = true;
+                        //        e.model.set("actualDateString", newdate);
+                        //        e.model.fields["actualDateString"].editable = false;
+                        //    }
+
+                        //    $("#btn" + e.model.customerId).show();
+                        //}
+
+                        //if (e.values.userDriver) {
+                        //    var deliveryDay = +e.model.deliveryDay;
+
+                        //    if (parseInt(deliveryDay) == 0) {
+                        //        var dateObj = new Date();
+                        //        const month = dateObj.toLocaleString('default', { month: 'long' });
+                        //        var day = dateObj.getDate();
+                        //        var year = dateObj.getUTCFullYear();
+                        //        var newdate = day + " " + month + ", " + year;
+
+                        //        e.model.fields["deliveryDay"].editable = true;
+                        //        e.model.set("deliveryDay", day);
+                        //        e.values.deliveryDay = day;
+
+                        //        e.model.fields["actualDateString"].editable = true;
+                        //        e.model.set("actualDateString", newdate);
+                        //        e.values.actualDateString = newdate;
+                        //    }
+                        //    //$("#btn" + e.model.customerId).show();
+                        //}
+                    },
+                    dataBound: function(e) 
+                    {
+                        var dataItems = e.sender.dataSource.view();
+                        for (var j = 0; j < dataItems.length; j++) {
+
+                            var isGreen = dataItems[j].get("isGreen");
+                            //var row = e.sender.tbody.find("[data-uid='" + dataItems[j].uid + "']");
+                            if (parseInt(isGreen) > 0) {
+                                e.sender.tbody.find("tr[data-uid='" + dataItems[j].uid + "']").addClass("isGreen");
+                            }
+                        }
+                    }
+                });
+
+                function searchInGrid() {
+                    var searchValue = $('#searchBox').val();
+
+                    $("#CustomerList").data("kendoGrid").dataSource.filter({
+                        logic: "or",
+                        filters: [
+                            {
+                                field: "accountName",
+                                operator: "contains",
+                                value: searchValue
+                            },
+                            {
+                                field: "shippingStreet",
+                                operator: "contains",
+                                value: searchValue
+                            },
+                            {
+                                field: "shippingCity",
+                                operator: "contains",
+                                value: searchValue
+                            },
+                            {
+                                field: "shippingState",
+                                operator: "contains",
+                                value: searchValue
+                            },
+                            {
+                                field: "shippingCode",
+                                operator: "contains",
+                                value: searchValue
+                            },
+                            {
+                                field: "userName",
+                                operator: "contains",
+                                value: searchValue
+                            }
+                        ]
+                    });
+                }
+
+                $("#btnSearch").click(function () {
+                    searchInGrid();
+                });
+
+                $('#searchBox').mouseup(function () {
+                    setTimeout(function () {
+                        if ($('#searchBox').val() === '') {
+                            $("#CustomerList").data("kendoGrid").dataSource.filter({});
+                        };
+                    }, 1)
+                });
+
+                $("#searchBox").keyup(function (event) {
+                    if (event.keyCode === 13) {
+                        searchInGrid();
+                    }
+                });
+            }
+        });
+    }
+
+    $("#btnExport").click(function (e) {
+
+        var dataSource = $("#CustomerList").data("kendoGrid").dataSource;
+        var filteredDataSource = new kendo.data.DataSource({
+            data: dataSource.data(),
+            filter: dataSource.filter()
+        });
+
+        filteredDataSource.read();
+        var data = filteredDataSource.view();
+
+        const csvString = arrayToCSV(data);
+        const blob = new Blob([csvString], { type: 'text/csv' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'PendingStoresList.csv';
+        document.body.appendChild(link);
+        link.click();
+    });
+
+    function arrayToCSV(array) {
+        let csvString = 'Account Name,Shipping Street,Shipping Code,Delivery Date,Actual Del Date,Shipment Status\n'; // Add the headers
+        for (let i = 0; i < array.length; i++) {
+            const object = array[i];
+            csvString += `"${object.accountName}","${object.shippingStreet}","${object.shippingCode}","${object.deliveryDateString}","${object.actualDateString}","${object.shipmentStatus}"\n`;
+        }
+        return csvString;
+    }
+
+    function drivers(container, options) {
+        jQuery('<input id="userId" data-text-field="userName" data-value-field="userId" data-bind="value:' + options.field + '"/>')
+            .appendTo(container)
+            .kendoComboBox({
+                autoBind: false,
+                placeholder: "--Select Driver--",
+                dataSource: {
+                    transport: {
+                        read: {
+                            type: "GET",
+                            url: getDriverURL,
+                        }
+                    }
+                },
+
+                change: function (e) {
+
+                    var customerId = options.model.customerId;
+                    var kendoGrid = $("#CustomerList").getKendoGrid();
+                    var ds = kendoGrid.dataSource;
+                    var gridDataItem = kendoGrid.dataItem($("#customer" + customerId).closest("tr"));
+                    var sel_idx = ds.indexOf(gridDataItem);
+
+                    var dataItem = this.dataItem(e.item);
+                    var grid = $("#CustomerList").data("kendoGrid");
+                    var gridData = grid.dataSource.data();
+
+                    gridData[sel_idx].userName = dataItem.userName;
+                    gridData[sel_idx].userDriverId = dataItem.userId;
+
+                    if (parseInt(gridData[sel_idx].userDriverId) != 0 && gridData[sel_idx].actualDateString != null) {
+                        //$("#btn" + gridData[sel_idx].customerId).show();
+                        AssignDriver(gridData[sel_idx].customerId, gridData[sel_idx].actualDateString);
+                    }
+
+                    //var grid = $("#CustomerList").data("kendoGrid");
+                    //var sel = grid.select();
+                    //var sel_idx = sel.index();
+                    //var gridData = grid.dataSource.data();
+
+                    //var dataSource = $("#CustomerList").data("kendoGrid").dataSource;
+                    //var filters = dataSource.filter();
+                    //var allData = dataSource.data();
+                    //var query = new kendo.data.Query(allData);
+                    //var data = query.filter(filters).data;
+
+                    ///////////////////////////////////////////////////////
+
+                    //data[sel_idx].userName = dataItem.userName;
+                    //data[sel_idx].userDriverId = dataItem.userId;
+
+                    //if (parseInt(gridData[sel_idx].userDriverId) != 0 && gridData[sel_idx].actualDateString != null) {
+                    //    $("#btn" + data[sel_idx].customerId).show();
+                    //}
+                }
+            });
+    }
+
+    function AssignDriver(customerId, actualDateString) {
+
+        //var grid = $("#CustomerList").data("kendoGrid");
+        //var rowIndex = $("#btn" + customerId).closest('tr').index();
+        //var gridData = grid.dataSource.data();
+        //var dataSource = $("#CustomerList").data("kendoGrid").dataSource;
+        //var filters = dataSource.filter();
+        //var allData = dataSource.data();
+        //var query = new kendo.data.Query(allData);
+        //var data = query.filter(filters).data;
+
+
+        var kendoGrid = $("#CustomerList").getKendoGrid();
+        var ds = kendoGrid.dataSource;
+        var gridDataItem = kendoGrid.dataItem($("#customer" + customerId).closest("tr"));
+        var sel_idx = ds.indexOf(gridDataItem);
+
+        var grid = $("#CustomerList").data("kendoGrid");
+        var gridData = grid.dataSource.data();
+
+
+
+        var deliveryDay = gridData[sel_idx].deliveryDay;
+        var actualDateString = actualDateString;
+        var userDriverId = gridData[sel_idx].userDriverId;
+        var customerId = gridData[sel_idx].customerId;
+        var driverCustomerTrackId = gridData[sel_idx].driverCustomerTrackId;
+
+
+        //var deliveryDay = data[rowIndex].deliveryDay;
+        //var actualDateString = data[rowIndex].actualDateString;
+        //var userDriverId = data[rowIndex].userDriverId;
+        //var customerId = data[rowIndex].customerId;
+        //var driverCustomerTrackId = data[rowIndex].driverCustomerTrackId;
+
+        //var actualDate = null;
+        //const date = new Date();
+        //var day = date.getDate();
+
+        //if (parseInt(deliveryDay) < parseInt(day)) {
+        //    date.setMonth(date.getMonth() + 1);
+        //}
+
+        //var monthName = date.toLocaleString('default', { month: 'long' });
+        //let year = date.getFullYear().toString();
+        //let month = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].indexOf(monthName) + 1;
+
+        //var result = year.concat("-", month);
+        //actualDate = result.concat("-", deliveryDay);
+        //const date = new Date();
+        //var actualDate = $("#deliveryDate").val();
+
+
+
+        // Get year, month, and day part from the date
+        var year = actualDateString.toLocaleString("default", { year: "numeric" });
+        var month = actualDateString.toLocaleString("default", { month: "2-digit" });
+        var day = actualDateString.toLocaleString("default", { day: "2-digit" });
+
+        // Generate yyyy-mm-dd date string
+        var formattedDate = year + "-" + month + "-" + day;
+
+        var assignDriver = {
+            DriverId: userDriverId,
+            CustomerId: customerId,
+            ActualDateString: formattedDate
+            //ActualProductsPicked: 1,
+            //ActualProductsShipped: 0,
+            //IsCompleted: 0,
+            //IsActive: 1,
+            //DriverCustomerTrackId: driverCustomerTrackId,
+            //DeliveryDay: deliveryDay
+        };
+
+        var driverModel = JSON.stringify(assignDriver);
+
+        debugger;
+
+        Loading(true);
+        $.ajax({
+            type: "POST",
+            url: "/ShipmentTracking/SaveAssignDriver",
+            data: driverModel,
+            dataType: "json",
+            contentType: "application/json",
+            success: function (respose) {
+                $("#btn" + gridData[sel_idx].customerId).hide();
+                Loading(false);
+                console.log(respose);
+                if (respose.output === "Success") {
+                    shipmentTrackingGrid();
+                    return false;
+                }
+                else {
+                    swal("Oops", respose.msg, "error");
+                    return false;
+                }
+            },
+            error: function (respose) {
+                $("#btn" + gridData[sel_idx].customerId).hide();
+                swal("Oops!", respose.msg, "error");
+                return false;
+            },
+        });
+    }
+</script>
+

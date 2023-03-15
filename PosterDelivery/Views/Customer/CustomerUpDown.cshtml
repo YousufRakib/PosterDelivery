@@ -1,0 +1,91 @@
+﻿@{
+    ViewBag.Title = "Customers Upload & Download";
+}
+
+<div class="col-md-12">
+    <div class="box box-primary">
+        <div class="box-header with-border">
+            <h3 class="box-title">@ViewBag.Title</h3>
+        </div>
+        <div class="box-body" style="margin-top: 5%">
+            <div>
+                @using (Html.BeginForm("ExportCustomer", "Customer"))
+                {
+                    <div class="row">
+                        <div class="col-md-12">
+                            <input type="submit" class="btn btn-link" value="Download Customer Data" title="Export Customer Data" />
+                        </div>
+                    </div>
+                }
+                <div>
+                    <form id="submitForm" enctype="multipart/form-data" method="post">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h5>Upload customer data file:</h5>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="file" id="customerFile" name="customerFile"
+                                       accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                                <label class="text-danger">.xls and .xlsx allowed.</label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4"></div>
+                            <div class="col-md-6">
+                                <button type="button" value="Update" onclick="UploadCustomerData();" class="btn btn-success">Update</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function UploadCustomerData() {
+        $("#submitForm").validate({
+            rules: {
+                customerFile: "required"
+            },
+            messages: {
+                customerFile: "Customer File Required !!"
+            },
+            errorElement: "div"
+        });
+
+        if ($("#submitForm").valid()) {
+            var file = document.getElementById('customerFile');
+            var formData = new FormData();
+            if (file.files.length > 0) {
+                for (var i = 0; i < file.files.length; i++) {
+                    formData.append("file", file.files[i]);
+                }
+            }
+            Loading(true);
+            $.ajax({
+                type: "POST",
+                url: "/Customer/CustomerUpload",
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (response) {
+                    Loading(false);
+                    if (response.output === "Success") {
+                        swal("Success", response.msg, "success");
+                        window.location.href = "/Customer/CustomerUpDown";
+                        return false;
+                    }
+                    else {
+                        swal("Oops", response.msg, "error");
+                        return false;
+                    }
+                },
+                error: function (response) {
+                    swal("Oops!", response.msg, "error");
+                    return false;
+                },
+            });
+        }
+    }
+</script>

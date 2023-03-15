@@ -1,0 +1,277 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    var roleName = HttpContextAccessor.HttpContext.Session.GetString("Roles");
+}
+
+<!doctype html>
+<html lang="en">
+<head>
+    <title>@ViewBag.Title</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="icon" href="~/favicon.ico" type="image/x-icon">
+
+    <link rel="stylesheet" href="~/Kendo/theme2/assets/vendor/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/Kendo/Content/site.css">
+    <link rel="stylesheet" href="~/Kendo/theme2/assets/vendor/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="~/Kendo/Content/Ionicons/css/ionicons.min.css">
+    <link rel="stylesheet" href="~/Kendo/theme2/assets/css/main.css">
+    <link rel="stylesheet" href="~/Kendo/theme2/assets/css/color_skins.css">
+    <link rel="stylesheet" href="~/Kendo/Content/kendo/styles/kendo.common.min.css">
+    <link rel="stylesheet" href="~/Kendo/Content/kendo/styles/kendo.silver.min.css">
+    <link rel="stylesheet" href="~/Kendo/Content/kendo/styles/kendo.silver.mobile.min.css">
+    <link rel="stylesheet" href="~/Kendo/Content/loading/loading.css">
+    <link rel="stylesheet" href="~/Kendo/Content/sweetalert/sweetalert2.min.css" />
+    <link rel="stylesheet" href="~/Kendo/Content/jquery-ui.css" />
+    <link rel="stylesheet" href="~/css/app.css" />
+
+    <script src="~/Kendo/Scripts/modernizr-2.6.2.js"></script>
+    <script src="~/Kendo/Scripts/jquery-2.1.3.js"></script>
+    <script src="~/Kendo/theme2/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/Kendo/Scripts/respond.js"></script>
+    <script src="~/Kendo/Content/kendo/js/kendo.web.min.js"></script>
+    <script src="~/Kendo/Content/kendo/js/jszip.min.js"></script>
+    <script src="~/Kendo/Content/loading/loading.js"></script>
+    <script src="~/Kendo/Content/sweetalert/sweetalert2.min.js"></script>
+    <script src="~/Kendo/Scripts/jquery.validate.min.js"></script>
+    <script src="~/Kendo/Content/jquery-ui.js"></script>
+
+    <script src="~/Kendo/theme2/assets/bundles/vendorscripts.bundle.js"></script>
+    <script src="~/Kendo/theme2/assets/bundles/mainscripts.bundle.js"></script>
+    
+
+    @RenderSection("Styles", required: false)
+</head>
+<body>
+    <!-- Page Loader -->
+    <div class="page-loader-wrapper">
+        <div class="loader">
+            <div class="m-t-30">
+                <img id="main-logo" src="~/images/logo.png" width="100" height="100" />
+            </div>
+            <p>Please wait...</p>
+        </div>
+    </div>
+    <!-- Overlay For Sidebars -->
+    <!--Logout Modal-->
+    <div id="confirmSignOutModal" class="modal" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" style="font-family: Gilroy; font-weight: 600;">Sign Out</h4>
+                </div>
+                <div class="modal-body">
+                    <form class="col-md-12 form-horizontal">
+                        <div class="form-group">
+                            <h5 style="font-family: Gilroy; font-weight: 500;">Are you sure, You want to Sign Out?</h5>
+                        </div>
+
+                        <button type="button" id="btnConformSignOut" onclick="Signout()" class="btn btn-success" style="font-family: Gilroy; font-weight: 600; font-size: 18px; background-color: #ffc107; border: none;">Confirm</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal" style="font-family: Gilroy; font-weight: 600; font-size: 18px; background-color: red; color: #fff; border: none;">Close</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-light" style="box-shadow: -3px 1px 10px rgb(0 0 0 / 15%); max-width: 100%;">
+        <div class="container">
+            <div class="navbar-brand d-flex flex-column justify-content-center align-items-center">
+                <a href="/Home/Index">
+                    <img id="main-logo" src="~/images/logo.png" width="100" height="100" />
+                </a>
+                <p style="color: #fdb041; font-size: 16px; font-family: Gilroy; font-weight: 600;">Poster And Framing LLC</p>
+            </div>
+
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                <div class="navbar-nav ml-auto full-width align-items-center">
+                    <ul id="navid"
+                        class="d-lg-inline-flex align-items-center full-width"
+                        style="list-style-type: none; font-size: 1.6em; gap: 0.7em; padding-left: 0px;">
+
+                        @if (roleName == "Driver")
+                        {
+                            <li class="dropdown mydropdowncss" style="margin:0.6em 0.2em">
+                                <a class="btn btn-secondar" href="/ShipmentTracking/PendingStoresForDriver" style="font-size: 1em; color: black; font-family: Gilroy;">Pending Delivery<span class="caret"></span></a>
+                            </li>
+                            <li class="dropdown mydropdowncss" style="margin:0.6em 0.2em">
+                                <a class="btn btn-secondar" href="/ShipmentTracking/CompletedStoresForDriver" style="font-size: 1em; color: black; font-family: Gilroy;">Completed Delivery<span class="caret"></span></a>
+                            </li>
+                            <li class="dropdown mydropdowncss ml-lg-5 flex-float-right">
+                                <a href="#" style="font-size:0.9em">
+                                    @*<i class="icon-user" style="font-family: Gilroy;font-size: 1.5em; color: black; padding: 0.3em;"></i>*@
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a href="/Home/Index">Profile</a>
+                                    </li>
+                                    <li>
+                                        <a href="#" onclick="ConfirmSignOut()">Sign Out</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li>
+                                <a style="font-size: 1em; color: black; font-family: Gilroy; font-weight: 500; background-color: #fbaf41;" class="nav-link active btn btn-danger" aria-current="page" href="/Home/Index">Dashboard</a>
+                            </li>
+                            <li class="dropdown mydropdowncss" style="margin:0.6em 0.2em">
+                                <a class="btn  dropdown-toggle" style="font-size: 1em; color: black; font-family: Gilroy; font-weight: 500;">Products<span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    <li><a style="font-size: 1em; font-family: Gilroy; font-weight: 500;" href="/Product/ProductList">Product List</a></li>
+                                    <li><a style="font-size: 1em; font-family: Gilroy; font-weight: 500;" href="/Product/ProductCategoryList">ProductCategory List</a></li>
+                                </ul>
+                            </li>
+                            <li class="dropdown mydropdowncss" style="margin:0.6em 0.2em">
+                                <a class="btn btn-secondar" href="/ShipmentTracking/AssignDriver" style="font-size: 1em; color: black; font-family: Gilroy; font-weight: 500;">Assign Driver<span class="caret"></span></a>
+                            </li>
+                            @*<li class="dropdown mydropdowncss" style="margin:0.6em 0.2em">
+                                <a class="btn btn-secondar dropdown-toggle" style="font-size: 1em; color: black; font-family: Gilroy; font-weight: 500;">Driver<span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a style="font-size: 1em; font-family: Gilroy; font-weight: 500;" href="/ShipmentTracking/AssignDriver">Assign Driver</a>
+                                    </li>
+                                    <li>
+                                        <a style="font-size: 1em; font-family: Gilroy; font-weight: 500;" href="/ShipmentTracking/ChangeDriver">Change Driver</a>
+                                    </li>
+                                </ul>
+                            </li>*@
+                            <li class="dropdown mydropdowncss" style="margin:0.6em 0.2em">
+                                <a class="btn btn-secondar dropdown-toggle" style="font-size: 1em; color: black; font-family: Gilroy; font-weight: 500;">Scanning<span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    @*<li>
+                                        <a style="font-size: 1em; font-family: Gilroy; font-weight: 500;" href="/ShipmentTracking/PendingStores">Pending Stores</a>
+                                    </li>*@
+                                    <li>
+                                        <a style="font-size: 1em; font-family: Gilroy; font-weight: 500;" href="/ShipmentTracking/ProgressStoresForNewBuyer">New Buyers</a>
+                                    </li>
+                                    <li>
+                                        <a style="font-size: 1em; font-family: Gilroy; font-weight: 500;" href="/ShipmentTracking/ProgressStores">Consignment Deliveries</a>
+                                    </li>
+                                    <li>
+                                        <a style="font-size: 1em; font-family: Gilroy; font-weight: 500;" href="/ShipmentTracking/CompletedStores">Completed Stores</a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="dropdown mydropdowncss" style="margin:0.6em 0.2em">
+                                <a class="btn btn-secondar" href="/Customer/CustomerList" style="font-size: 1em; color: black; font-family: Gilroy; font-weight: 500;">Customers<span class="caret"></span></a>
+                            </li>
+                            <li class="dropdown mydropdowncss" style="margin:0.6em 0.2em">
+                                <a class="btn btn-secondar" href="/Invoice/AllInvoiceList" style="font-size: 1em; color: black; font-family: Gilroy; font-weight: 500;">Invoices<span class="caret"></span></a>
+                            </li>
+                            <li class="dropdown mydropdowncss" style="margin:0.6em 0.2em">
+                                <a class="btn btn-secondar" href="/User/UserList" style="font-size: 1em; color: black; font-family: Gilroy; font-weight: 500;">Users<span class="caret"></span></a>
+                            </li>
+                            <li class="dropdown mydropdowncss" style="margin:0.6em 0.2em">
+                                <a class="btn btn-secondar dropdown-toggle" style="font-size: 1em; color: black; font-family: Gilroy; font-weight: 500;">Utilities<span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a href="/Customer/CustomerUpDown" style="font-size: 1em; font-family: Gilroy; font-weight: 500;">Customer</a>
+                                    </li>
+                                </ul>
+                            </li>
+                            @*data-toggle="dropdown"*@
+
+                        }
+                    </ul>
+                    <ul style="list-style: none;">
+                        <li class="dropdown mydropdowncss ml-lg-5 flex-float-right">
+                            <a href="#" style="font-size:0.9em">
+                                <i class="icon-user" style=" font-size: 2em; color: #fbaf41; padding: 0.3em; border: 2px solid; border-radius: 50%;"></i>
+                            </a>
+                            <ul class="dropdown-menu rightsmenu">
+                                <li>
+                                    <a style="font-size: 1em; font-family: Gilroy; font-weight: 500;" href="/User/Profile">Profile</a>
+                                </li>
+                                <li>
+                                    <a style="font-size: 1em; font-family: Gilroy; font-weight: 500;" href="#" onclick="ConfirmSignOut()">Sign Out</a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div id="main-content">
+        <div class="container">
+            <div class="row clearfix">
+                <div class="col-lg-12 col-md-12 p-0">
+                    <div class="card planned_task">
+                        <div class="body" style="padding:2%!important">
+                            @RenderBody()
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <section class="full-width bg-dark text-center text-lg-start" style="background-color: #000; position: relative;">
+        <footer class="full-width bg-light text-center text-lg-start" style="background-color: #000; padding: 10px 0px;">
+            <div class="full-width text-center p-3" style="background-color: #000; font-family: Gilroy; font-size: 16px; color: #fff;">
+                Copyright © @DateTime.Now.Year Poster And Framing LLC | All rights reserved
+            </div>
+        </footer>
+    </section>
+
+</body>
+
+    <style>
+        .mydropdowncss:hover .dropdown-menu {
+            display: block;
+            margin-top: 0;
+        }
+
+        .dropdown:hover {
+            cursor: pointer
+        }
+        .navbar-dark .navbar-toggler {
+            color: #ffc107 !important;
+            border-color: #ffc107 !important;
+        }
+
+        .navbar-toggler {
+            background-color: #ff9800 !important;
+            border: 1px solid #ffc107 !important;
+        }
+    </style>
+</html>
+
+<script>
+    var ConfirmSignOut = function () {
+        $('#confirmSignOutModal').modal();
+    }
+
+    function Signout() {
+        Loading(true);
+        $.ajax({
+            type: "POST",
+            url: "../Account/Logout",
+            success: function (respose) {
+                Loading(false);
+                window.location.href = "../User/Login";
+
+            },
+            error: function (respose) {
+                Loading(false);
+                $('#message').text(respose.msg);
+                $('#message').show();
+            },
+        });
+    }
+
+    function customerOrderDelivery(orderType) {
+        window.location = '/Home/CustomerOrderDeliveries?orderType=' + orderType;
+    }
+</script>
+
+

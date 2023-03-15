@@ -1,0 +1,142 @@
+﻿@model PosterDelivery.Utility.EntityModel.ProductsModel
+@using Newtonsoft.Json
+@{
+    ViewData["Title"] = "Non Scanning for new buyers";
+}
+
+<head>
+    <link href="~/Kendo/Content/loading/loading.css" rel="stylesheet" />
+    <script src="~/Kendo/Content/loading/loading.js"></script>
+    <script src="~/js/PhoneMask.js"></script>
+
+    <script type="text/javascript">
+        function changeSoldQuantity() {
+            var soldQuantity = parseInt($("input[name=Quantitycount]").val());
+
+            if (soldQuantity > 0) {
+                $("#divSerialNumber").show();
+                $("#divInvoiceUpload").show();
+                $("#divInvoiceAmount").show();
+            }
+            else {
+                $("#divSerialNumber").hide();
+                $("#divInvoiceUpload").hide();
+                $("#divInvoiceAmount").hide();
+
+                $("#txtInvoiceSerial").val('');
+                $("#txtInvoiceAmount").val(0);
+            }
+        }
+
+        function SubmitInvoice() {
+            let isValid = false;
+            $("#submitForm").validate({
+                rules: {
+                    InvoiceSerial: "required",
+                    InvoiceAmount: "required",
+                    FileInvoiceAmount: "required"
+                },
+                messages: {
+                    InvoiceSerial: "Invoice Serial Required !!",
+                    InvoiceAmount: "Invoice Amount Required !!",
+                    FileInvoiceAmount: "Invoice File Required !!"
+                },
+                errorElement: "div"
+            });
+
+            if ($("#txtQuantitycount").val() > 0) {
+                isValid = $("#submitForm").valid();
+            }
+            else {
+                isValid = true;
+            }
+
+            if (isValid) {
+                var file = document.getElementById('txtInvoiceFile');
+                var formData = new FormData();
+                formData.append("file", file.files[0]);
+                formData.append('customerId', @Model.CustomerId);
+                formData.append('DriverCustomerTrackId', @Model.DriverCustomerTrackId);
+                formData.append('InvoiceAmount', $("#txtInvoiceAmount").val());
+                formData.append('InvoiceSerialNum', $("#txtInvoiceSerial").val());
+                formData.append('SoldQuantity', $("#txtQuantitycount").val());
+                Loading(true);
+                $.ajax({
+                    type: "POST",
+                    url: "/ShipmentTracking/CaptureBuyerFirstVisit",
+                    data: formData,
+                    traditional: true,
+                    //dataType: "json",
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        Loading(false);
+                        if (response.output === "Success") {
+                            swal("Success", response.msg, "success");
+                            window.location.href = "/ShipmentTracking/ProgressStoresForNewBuyer";
+                            return false;
+                        }
+                        else {
+                            swal("Oops", response.msg, "error");
+                            return false;
+                        }
+                    },
+                    error: function (response) {
+                        swal("Oops!", response.msg, "error");
+                        return false;
+                    },
+                });
+            }
+        }
+    </script>
+</head>
+<div class="col-md-12 p-0">
+    <div class="box box-primary" style="margin-top:30px;">
+        <div class="box-header with-border">
+            <h3 class="box-title">@ViewBag.Title - @Model.CustomerName (#@Model.CustomerId)</h3>
+        </div>
+    </div>
+    <div id="dvInvoice" class="box box-primary" style="margin-top:30px; width:65%;">
+        <form id="submitForm" style="margin-top:20px;">
+            <div class="form-group col">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label style="vertical-align:middle;">Sold Quantity *</label>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <input type="number" min="0" value="0" id="txtQuantitycount" name="Quantitycount" style="width: 40%;" class="k-textbox form-control" />
+                    </div>
+                </div>
+                <div class="row" id="divSerialNumber">
+                    <div class="col-md-4">
+                        <label style="vertical-align:middle;">Invoice Serial *</label>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <input type="text" id="txtInvoiceSerial" name="InvoiceSerial" style="width: 40%;" class="k-textbox form-control" />
+                    </div>
+                </div>
+                <div class="row" id="divInvoiceAmount">
+                    <div class="col-md-4">
+                        <label style="vertical-align:middle;">Invoice Amount *</label>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <input type="text" id="txtInvoiceAmount" name="InvoiceAmount" style="width: 40%;" class="k-textbox form-control" />
+                    </div>
+                </div>
+                <div class="row" id="divInvoiceUpload">
+                    <div class="col-md-4">
+                        <label style="vertical-align:middle;">Invoice Upload *</label>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <input type="file" id="txtInvoiceFile" name="FileInvoiceAmount" style="width: 40%;" class="k-textbox form-control" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6" style="margin-bottom:20px;">
+                        <button id="btnSubmitInvoice" onclick="SubmitInvoice()" type="button" class="btn btn-sm btn-info"><i class="fa" style="color:white;"></i>Submit Invoice</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

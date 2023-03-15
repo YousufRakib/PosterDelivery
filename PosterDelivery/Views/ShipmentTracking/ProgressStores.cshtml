@@ -1,0 +1,210 @@
+﻿@{
+    //ViewBag.Title = "Inprogress Stores";
+}
+
+<div id="scanDecideModel" class="modal" role="dialog">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Type of Operation</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group-sm">
+                    <div class="col">
+                        <div class="col-md-12">
+                            <div class="row" style="margin-top:5px">
+                                <div class="col-md-6">
+                                    <input type="hidden" id="customerId" />
+                                    <input type="hidden" id="driverCustomerTrackId" />
+                                    <input type="radio" id="nonScan" name="scan" value="No Scan" checked>
+                                    <label for="nonScan"><h5>No Scan</h5></label>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="radio" id="withScan" name="scan" value="Scan">
+                                    <label for="withScan"><h5>Scan</h5></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12 text-center" style="margin-top:10px">
+                    <input type="submit" onclick="startScanning()" value="Start" class="btn btn-primary" />
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-12 p-0">
+    <div class="box box-primary">
+        <div class="box-header with-border">
+            <h3 class="box-title"></h3>
+            <div style="float: right">
+                <button class="btn" id="btnExport">
+                    <img src="~/images/icons/file-excel.svg" title="Export Progress Stores List" alt="Export Progress Stores List" style="width: 40px; height: 35px">
+                </button>
+            </div>
+        </div>
+
+        <div class="box-body">
+            <div id="CustomerList"></div>
+        </div>
+    </div>
+</div>
+
+@*<script id="actionTemplate" type="text/x-kendo-template">
+    <a style="font-size:11px; text-decoration: none; target="_self" href="javascript: SelectScanType(#= customerId #, #= driverCustomerTrackId #)" class="btn btn-small btn-info">Arrive</a>
+</script>*@
+
+<script type="text/javascript">
+
+    var url = "/ShipmentTracking/GetProgressStores";
+
+    $(document).ready(function () {
+        const currentDate = new Date();
+        const month = currentDate.toLocaleString('default', { month: 'long' });
+        const year = currentDate.getFullYear();
+
+        $(".box-title").html("Consignment Stores of " + month + ", " + year);
+
+        shipmentTrackingGrid();
+    });
+
+    function shipmentTrackingGrid() {
+        $.ajax({
+            type: "GET",
+            url: url,
+            dataType: "json",
+            success: function (response) {
+                console.log(response);
+                var gridDataSource = response.returnvalue;
+                $("#CustomerList").kendoGrid({
+                    dataSource: gridDataSource,
+                    scrollable: true,
+                    filterable: true,
+                    resizable: true,
+                    pageable: {
+                        refresh: true,
+                        input: true,
+                        pageSize: 20,
+                        numeric: false,
+                        pageSizes: [20, 50, 100, 200]
+                    },
+                    sortable: true,
+                    columns: [
+                        { field: "customerId", title: "Customer Id", width: 100, media: "(min-width: 100px;)", filterable: false, hidden: true },
+                        { field: "driverCustomerTrackId", title: "DriverCustomerTrackId", width: 100, media: "(min-width: 100px;)", filterable: false, hidden: true },
+                        { field: "accountName", title: "Account Name", width: 100, media: "(min-width: 100px;)", filterable: { extra: false } },
+                        { field: "shippingStreet", title: "Shipping Street", width: 100, media: "(min-width: 100px;)", filterable: { extra: false } },
+                        { field: "shippingCity", title: "Shipping City", width: 100, media: "(min-width: 100px;)", filterable: { extra: false } },
+                        { field: "shippingState", title: "Shipping State", width: 100, media: "(min-width: 100px;)", filterable: { extra: false } },
+                        { field: "shippingCode", title: "Shipping Code", width: 100, media: "(min-width: 100px;)", filterable: { extra: false } },
+                        { field: "numOfPosters", title: "Number Of Posters", width: 100, media: "(min-width: 100px;)", filterable: { extra: false } },
+                        {
+                            field: "deliveryDateString", title: "Delivery Date", width: 100, media: "(min-width: 100px;)",
+                            filterable: {
+                                operators: {
+                                    string: {
+                                        eq: "Equal to",
+                                        neq: "Not equal to"
+                                    }
+                                },
+                                extra: false
+                            }
+                        },
+                        {
+                            field: "actualDateString", title: "Actual Del Date", width: 100, media: "(min-width: 100px;)",
+                            filterable: {
+                                operators: {
+                                    string: {
+                                        eq: "Equal to",
+                                        neq: "Not equal to"
+                                    }
+                                },
+                                extra: false
+                            }
+                        },
+                        { field: "userName", title: "Driver Name", width: 100, media: "(min-width: 100px;)", filterable: { extra: false } },
+                        {
+                            title: "Action", width: 100, media: "(min-width: 100px;)",
+                            template: "#=CheckForButton(scannedStore, customerId, driverCustomerTrackId, isInvoiceGenerated)#"
+                        },
+                    ]
+                });
+            }
+        });
+    }
+
+    function CheckForButton(scannedStore, customerId, driverCustomerTrackId, isInvoiceGenerated) {
+        if(scannedStore == null) {
+            return "<button id='btnArrive" + customerId + "' style='font-size: 11px; text-decoration: none;' target = '_self' onclick = 'javascript: SelectScanType(" + customerId + ", " + driverCustomerTrackId + ")' class='btn btn-small btn-info'>Arrive</button>";
+        }
+        else if(scannedStore == 0) {
+            return "<button id='btnNoScan" + customerId + "' style='font-size: 11px; text-decoration: none;' target = '_self' onclick = 'javascript: startScanning(" + scannedStore + ", " + customerId + ", " + driverCustomerTrackId + ", " + isInvoiceGenerated + ")' class='btn btn-small btn-info'>Continue</button>";
+        }
+        else {
+            return "<button id='btnScan" + customerId + "' style='font-size: 11px; text-decoration: none;' target = '_self' onclick = 'javascript: startScanning(" + scannedStore + ", " + customerId + ", " + driverCustomerTrackId + ", " + isInvoiceGenerated + ")' class='btn btn-small btn-info'>Continue</button>";
+        }
+    }
+
+    $("#btnExport").click(function (e) {
+
+        var dataSource = $("#CustomerList").data("kendoGrid").dataSource;
+        var filteredDataSource = new kendo.data.DataSource({
+            data: dataSource.data(),
+            filter: dataSource.filter()
+        });
+
+        filteredDataSource.read();
+        var data = filteredDataSource.view();
+
+        const csvString = arrayToCSV(data);
+        const blob = new Blob([csvString], { type: 'text/csv' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'InProgressStoresList.csv';
+        document.body.appendChild(link);
+        link.click();
+    });
+
+    function arrayToCSV(array) {
+        let csvString = 'Account Name,Shipping Street,Shipping Code,Delivery Date,Actual Del Date,Shipment Status\n'; // Add the headers
+        for (let i = 0; i < array.length; i++) {
+            const object = array[i];
+            csvString += `"${object.accountName}","${object.shippingStreet}","${object.shippingCode}","${object.deliveryDateString}","${object.actualDateString}","${object.shipmentStatus}"\n`;
+        }
+        return csvString;
+    }
+    
+    function SelectScanType(customerId, driverCustomerTrackId) {
+        $("#scanDecideModel").modal();
+        $("#customerId").val(customerId);
+        $("#driverCustomerTrackId").val(driverCustomerTrackId);
+    }
+
+    function startScanning(scannedStore, customerId, driverCustomerTrackId, isInvoiceGenerated) {
+        if(scannedStore == null) {
+            if ($('input[name="scan"]:checked').val() == "Scan") {
+                window.open("/ShipmentTracking/StartScanning?customerId=" + $("#customerId").val() + "&driverCustomerTrackId=" + $("#driverCustomerTrackId").val(), "_self");
+            }
+            else {
+                window.open("/ShipmentTracking/StartNonScanning?customerId=" + $("#customerId").val() + "&driverCustomerTrackId=" + $("#driverCustomerTrackId").val(), "_self");
+            }
+        }
+        else {
+            if (scannedStore == "1") {
+                if(isInvoiceGenerated == null || isInvoiceGenerated == 0) {
+                    window.open("/ShipmentTracking/StartScanning?customerId=" + customerId + "&driverCustomerTrackId=" + driverCustomerTrackId, "_self");
+                }
+                else {
+                    window.open("/ShipmentTracking/StartDeliveryScanning?customerId=" + customerId + "&driverCustomerTrackId=" + driverCustomerTrackId, "_self");
+                }
+            }
+            else {
+                window.open("/ShipmentTracking/StartNonScanning?customerId=" + customerId + "&driverCustomerTrackId=" + driverCustomerTrackId, "_self");
+            }
+        }
+    }
+</script>
+

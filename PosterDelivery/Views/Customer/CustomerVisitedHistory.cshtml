@@ -1,0 +1,67 @@
+﻿@{
+    ViewBag.Title = "Customer Visited History";
+}
+
+<div class="col-md-12 p-0">
+    <div class="box box-primary">
+        <div class="box-header with-border">
+            <h3 class="box-title">@ViewBag.Title</h3>
+        </div>
+
+        <div class="box-body">
+            <input type="hidden" id="customerId" value="@ViewBag.CustomerId" />
+            <div id="CustomerVisitedList"></div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    var url = "/Customer/GetCustomerVisitedHistory";
+    
+    $(document).ready(function () {
+        function ShowCustomerVisitedList() {
+            var customerId= $('#customerId').val();
+
+            $.ajax({
+                type: "GET",
+                url: url,
+                data: {
+                    'customerId': customerId
+                },
+                success: function (response) {
+                    console.log(response);
+                    var gridDataSource = response.returnvalue;
+                    $("#CustomerVisitedList").kendoGrid({
+                        dataSource: gridDataSource,
+                        scrollable: true,
+                        filterable: true,
+                        resizable: true,
+                        pageable: {
+                            refresh: true,
+                            input: true,
+                            pageSize: 20,
+                            numeric: false,
+                            pageSizes: [20, 50, 100, 200],
+                            message: {
+                                empty: 'No Data',
+                                allPages: 'All'
+                            }
+                        },
+                        sortable: true,
+                        columns: [
+                            { field: "customerId", title: "Customer Id", width: 100, media: "(min-width: 80px;)", filterable: false, hidden: true },
+                            { field: "accountName", title: "Account Name", width: 100, media: "(min-width: 100px;)", filterable: false },
+                            { field: "shippingStreet", title: "Shipping Street", width: 100, media: "(min-width: 120px;)", filterable: false },
+                            { field: "shippingCity", title: "Shipping City", width: "12%", filterable: false },
+                            { field: "shippingState", title: "Shipping State", width: 100, media: "(min-width: 100px;)", filterable: false },
+                            { field: "lastVisitedDateString", title: "Last Visited Date", width: 100, media: "(min-width: 100px;)", filterable: false },
+                            { field: "deliveryDate", title: "Next Visit Date", width: 100, media: "(min-width: 100px;)", filterable: false }
+                        ]
+                    });
+                }
+            });
+        }
+        ShowCustomerVisitedList();
+    });
+</script>

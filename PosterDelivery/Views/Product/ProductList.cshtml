@@ -1,0 +1,296 @@
+﻿@{
+    ViewBag.Title = "Products List";
+}
+
+@using PosterDelivery.Utility;
+
+<div class="col-md-12 p-0">
+    <div class="box box-primary">
+        @*   <div class="form-inline float-right">
+        <input type="search" id="searchBox" style="width: 300px;z-index:10;margin-right:10px" placeholder="Search..." class="k-textbox" />
+        <button id="btnSearch" class="btn btn-sm btn-info" style="margin-right:10px;z-index:10;"><i class="fa fa-search" style="color:white;"></i> Search</button>
+        </div>*@
+
+        <div class="box-header with-border">
+            <h3 class="box-title">@ViewBag.Title</h3>
+            <div style="float: right">
+              <button class="btn" id="btnExport">
+                <img src="~/images/icons/file-excel.svg" title="Export Product List" alt="Export Product List" style="width: 40px; height: 35px">
+              </button>
+            </div>
+        </div>
+
+        <div class="box-body">
+            <div id="ProductList"></div>
+        </div>
+    </div>
+    <div class="wisl-panel-footer text-center">
+        <button type="button" class="btn btn-primary" id="btnPrint" onclick="printProducts()"><i class="fa fa-print" style="font-size:13px;color:white"></i> Print</button>
+        <button type="button" class="btn btn-primary" id="btnPrint" onclick="printGrid()"><i class="fa fa-print" style="font-size:13px;color:white"></i> Print Grid</button>
+    </div>
+</div>
+<script id="actionTemplate" type="text/x-kendo-template">
+    <a style="font-size:11px; text-decoration: none;" target="_self" href="/Product/AddProduct?productId=#= productId #" class="btn btn-small btn-info">Edit</a>
+</script>
+
+<script type="text/javascript">
+
+    var url = "/Product/GetProductList";
+    var createUrl = "/Product/AddProduct";
+
+    $(document).ready(function () {
+        function ShowProductList() {
+            $.ajax({
+                type: "GET",
+                url: url,
+                contentType: false,
+                processData: false,
+                selectable: true,
+                success: function (response) {
+                    console.log(response);
+                    var gridDataSource = response.returnvalue;
+                    $("#ProductList").kendoGrid({
+                        toolbar: [
+                            {
+                                name: "Create",
+                                text: "Create",
+                            },
+                        ],
+                        dataSource: gridDataSource,
+                        scrollable: true,
+                        filterable: true,
+                        resizable: true,
+                        pageable: {
+                            refresh: true,
+                            input: true,
+                            pageSize: 20,
+                            numeric: false,
+                          pageSizes: [20, 50, 100, 200]
+                        },
+                        sortable: true,
+                        columns: [
+                            {
+                                field: 'selectProduct',
+                                title: 'Select Product',
+                                template: '<input type="checkbox" #= selectProduct ? \'checked="checked"\' : "" # class="chkbx"/>',  type: "boolean",
+                                width: 120
+                            },
+                            { field: "productId", title: "Id", width: 100, media: "(min-width: 100px;)", filterable: false },
+                            { field: "productSerial", title: "Product Serial", width: 100, media: "(min-width: 100px;)", filterable: { extra: false } },
+                            { field: "productName", title: "Product Name", width: 100, media: "(min-width: 100px;)", filterable: { extra: false } },
+                            { field: "categoryName", title: "Category Name", width: 100, media: "(min-width: 100px;)", filterable: { extra: false } },
+                            { field: "productPrice", title: "Product Price", width: 100, media: "(min-width: 100px;)", type: "number", filterable: { extra: false } },
+                            { field: "dateCreatedString", title: "Added Date", width: 100, media: "(min-width: 100px;)",
+                                filterable: {
+                                    operators: {
+                                        string: {
+                                            eq: "Equal to",
+                                            neq: "Not equal to"
+                                        }
+                                    },
+                                    extra: false
+                                }
+                            },
+                            //{ field: "isActive", title: "Status", width: 100, media: "(min-width: 100px;)", filterable: false },
+                            {
+                                title: "Action", width: 100, media: "(min-width: 100px;)",
+                                template: kendo.template($("#actionTemplate").html())
+                            },
+
+                            { field: "barCodeImagePath", title: "Barcode", width: 100, media: "(min-width: 100px;)", hidden: true, filterable: { extra: false } },
+                        ]
+                    });
+
+                    function searchInGrid() {
+                        var searchValue = $('#searchBox').val();
+
+                        $("#ProductList").data("kendoGrid").dataSource.filter({
+                            logic: "or",
+                            filters: [
+                                {
+                                    field: "productSerial",
+                                    operator: "contains",
+                                    value: searchValue
+                                },
+                                {
+                                    field: "productName",
+                                    operator: "contains",
+                                    value: searchValue
+                                },
+                                {
+                                    field: "categoryName",
+                                    operator: "contains",
+                                    value: searchValue
+                                }
+                            ]
+                        });
+                    }
+
+                    $(".k-grid-Create").click(function (e) {
+                        window.location.href = createUrl;
+                    });
+
+                    $("#btnSearch").click(function () {
+                        searchInGrid();
+                    });
+
+                    $('#searchBox').mouseup(function () {
+                        setTimeout(function () {
+                            if ($('#searchBox').val() === '') {
+                                $("#ProductList").data("kendoGrid").dataSource.filter({});
+                            };
+                        }, 1)
+                    });
+
+                    $("#searchBox").keyup(function (event) {
+                        if (event.keyCode === 13) {
+                            searchInGrid();
+                        }
+                    });
+                }
+            });
+        }
+        ShowProductList();
+    });
+
+    $("#btnExport").click(function (e) {
+        
+        var dataSource = $("#ProductList").data("kendoGrid").dataSource;
+        var filteredDataSource = new kendo.data.DataSource({
+            data: dataSource.data(),
+            filter: dataSource.filter()
+        });
+
+        filteredDataSource.read();
+        var data = filteredDataSource.view();
+
+        const csvString = arrayToCSV(data);
+        const blob = new Blob([csvString], { type: 'text/csv' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'ProductList.csv';
+        document.body.appendChild(link);
+        link.click();
+        e.preventDefault();
+    });
+
+    function arrayToCSV(array) {
+        let csvString = 'Id,Product Serial,Product Name,Category Name,Product Price,Added Date\n'; // Add the headers
+        for (let i = 0; i < array.length; i++) {
+            const object = array[i];
+            csvString += `"${object.productId}","${object.productSerial}","${object.productName}","${object.categoryName}","${object.productPrice}","${object.dateCreatedString}"\n`;
+        }
+        return csvString;
+    }
+
+    function printProducts()
+    {
+        var productgrid = $("#ProductList").data("kendoGrid");
+        var checked = $("input:checked", productgrid.tbody).closest("tr");
+        var products = [];
+        $.each(checked, function (idx, row) {
+                var checkedProducts = productgrid.dataItem(row);
+                products.push(checkedProducts);
+            });
+
+        if (products.length == 0 || products.length == null) {
+            swal("Opps!", "Please select a product", "error");
+            return;
+        }
+
+        var printableContent = '',
+            win = window.open('', '', 'width=800, height=500, resizable=1, scrollbars=1'),
+            doc = win.document.open();
+
+        var htmlStart =
+            '<head>' +
+            '<meta charset="utf-8" />' +
+            '<title>Bar Codes</title>' +
+            '<link href="https://kendo.cdn.telerik.com/' + kendo.version + '/styles/kendo.common.min.css" rel="stylesheet" /> ' +
+            '<style>' +
+            'html { font: 11pt sans-serif; }' +
+            '</style>' +
+            '</head>' +
+            '<body>';
+
+        var htmlEnd = '<body>';
+
+        products.forEach(product =>
+            {
+                printableContent += "<b>" + product.productName + "</b><br/>";
+
+                if (product.qrCodeInlineImage)
+                {
+//                  printableContent += '<img id="productImagePreview" src = "/Product/ProductImage?filePath={product.barCodeImagePath}") height = "185" width = "185" /><br/><br/>';
+                    printableContent += '<img id="barcodeImagePreview" src = ' + product.qrCodeInlineImage + ' height = "185" width = "185" /><br/><br/>'
+                }
+                else
+                {
+                    printableContent += '<img id="productImagePreview" src = "../../images/Default_Image.png" height = "185" width = "185" /><br/><br/>';
+                }
+            }
+        );
+
+        doc.write(htmlStart + printableContent + htmlEnd);
+        doc.close();
+        win.focus();
+        win.onload = (event) =>
+        {
+            win.print();
+        }
+    }
+
+    function printGrid() {
+        var gridElement = $('#ProductList'),
+            printableContent = '',
+            win = window.open('', '', 'width=800, height=500, resizable=1, scrollbars=1'),
+            doc = win.document.open();
+
+        var htmlStart =
+            '<head>' +
+            '<meta charset="utf-8" />' +
+            '<title>Kendo UI Grid</title>' +
+            '<link href="https://kendo.cdn.telerik.com/' + kendo.version + '/styles/kendo.common.min.css" rel="stylesheet" /> ' +
+            '<style>' +
+            'html { font: 11pt sans-serif; }' +
+            '.k-grid { border-top-width: 0; }' +
+            '.k-grid, .k-grid-content { height: auto !important; }' +
+            '.k-grid-content { overflow: visible !important; }' +
+            'div.k-grid table { table-layout: auto; width: 100% !important; }' +
+            '.k-grid .k-grid-header th { border-top: 1px solid; }' +
+            '.k-grouping-header, .k-grid-toolbar, .k-grid-pager > .k-link { display: none; }' +
+            // '.k-grid-pager { display: none; }' + // optional: hide the whole pager
+            '</style>' +
+            '</head>' +
+            '<body>';
+
+        var htmlEnd = '<body>';
+
+        var gridHeader = gridElement.children('.k-grid-header');
+        if (gridHeader[0]) {
+            var thead = gridHeader.find('thead').clone().addClass('k-grid-header');
+            printableContent = gridElement
+                .clone()
+                .children('.k-grid-header').remove()
+                .end()
+                .children('.k-grid-content')
+                .find('table')
+                .first()
+                .children('tbody').before(thead)
+                .end()
+                .end()
+                .end()
+                .end()[0].outerHTML;
+        } else {
+            printableContent = gridElement.clone()[0].outerHTML;
+        }
+        doc.write(htmlStart + printableContent + htmlEnd);
+        doc.close();
+        win.focus();
+        win.onload = (event) =>
+        {
+            win.print();
+        }
+    }
+</script>
+

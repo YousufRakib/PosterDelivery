@@ -1,0 +1,29 @@
+﻿/* custom styles */
+
+/* 
+  a. provide some spacing for the dropdown menus
+  b. add background on hover so you see what you selecting
+*/
+ul.dropdown-menu li {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+ul.dropdown-menu li:hover {
+  background-color: antiquewhite;
+}
+
+ul.dropdown-menu li:hover a {
+  width: 100%;
+  display: inline-block;
+}
+
+
+.full-width {
+    width: 100%;
+    justify-content: center
+}
+
+.flex-float-right {
+  margin-left: auto !important;
+}

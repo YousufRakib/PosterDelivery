@@ -1,0 +1,347 @@
+﻿@model PosterDelivery.Utility.EntityModel.Customer
+@{
+    //ViewBag.Title = "Add Customer";
+    string disable = "";
+}
+
+<head>
+    <link href="~/Kendo/Content/loading/loading.css" rel="stylesheet" />
+    <script src="~/Kendo/Content/loading/loading.js"></script>
+    <script src="~/js/PhoneMask.js"></script>
+</head>
+
+<div class="col-md-12">
+    <div class="box box-primary">
+        <form id="customerForm">
+            <div class="box-header with-border">
+                @if (Model.CustomerId > 0)
+                {
+                    disable = "readonly";
+                    <h3 class="box-title">Edit Customer</h3>
+                }
+                else
+                {
+                    <h3 class="box-title">Add Customer</h3>
+                }
+            </div>
+            <div class="box-body">
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <div class="row">
+                                    <input id="id" name="customerId" type="hidden" value="@Model.CustomerId" />
+                                    <div class="col-md-2">
+                                        <label for="accountName">Account Name *</label>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <input id="accountName" name="accountName" value="@Model.AccountName" placeholder="Account Name" type="text" class="form-control" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="contactName">Contact Name *</label>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <input id="contactName" name="contactName" value="@Model.ContactName" placeholder="Contact Name" type="text" class="form-control" />
+                                    </div>
+
+                                    <div class="col-md-2">
+                                        <label for="shippingStreet">Shipping Street *</label>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <input class="form-control" value="@Model.ShippingStreet" placeholder="Shipping Street" id="shippingStreet" name="shippingStreet" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="contactPhone">Contact Phone *</label>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <input class="form-control" type="tel" onkeydown="javascript:backspacerDOWN(this,event)" ,
+                                               onkeyup="javascript:backspacerUP(this,event);" placeholder="Contact Phone" value="@Model.ContactPhone" id="contactPhone" name="contactPhone" />
+                                    </div>
+
+                                    <div class="col-md-2">
+                                        <label for="shippingCity">Shipping City *</label>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <input id="shippingCity" name="shippingCity" value="@Model.ShippingCity" placeholder="Shipping City" type="text" class="form-control" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="alternateContact">Cell Phone</label>
+                                    </div>
+                                    <div class="col-md-4 mb-3" id="myDropdown">
+                                        <input class="form-control" type="tel" onkeydown="javascript:backspacerDOWN(this,event)" ,
+                                               onkeyup="javascript:backspacerUP(this,event);" placeholder="Cell Phone" value="@Model.AlternateContact" id="alternateContact" name="alternateContact" />
+                                    </div>
+                                    
+
+                                    <div class="col-md-2">
+                                        <label for="shippingCode">Shipping Code *</label>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <input class="form-control" placeholder="Shipping Code" value="@Model.ShippingCode" id="shippingCode" name="shippingCode" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="email">Email</label>
+                                    </div>
+                                    <div class="col-md-4 mb-3" id="myDropdown">
+                                        <input id="email" name="email" value="@Model.Email" placeholder="Email" type="email" class="form-control" />
+                                    </div>
+
+                                    <div class="col-md-2">
+                                        <label for="shippingState">Shipping State *</label>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <input class="form-control" placeholder="Shipping State" value="@Model.ShippingState" id="shippingState" name="shippingState" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="deliveryDay">Delivery Day *</label>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <input class="form-control" placeholder="Delivery Day" value="@Model.DeliveryDay" id="deliveryDay" name="deliveryDay" />
+                                    </div>
+
+                                    @if (Model.CustomerId > 0)
+                                    {
+                                        <div class="col-md-2">
+                                            <label for="notes">Notes</label>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <textarea rows="3" class="form-control" cols="50" value="@Model.Notes" id="notes" name="notes"></textarea>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label for="totalBoxes">Number Of Posters *</label>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <input type="number" id="totalBoxes" value="@Model.TotalBoxes" name="totalBoxes" min="0" class="form-control" />
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="col-md-2">
+                                            <label for="consignmentOrBuyer">Customer Type *</label>
+                                        </div>
+                                        <div class="col-md-4 mb-3" id="myDropdown">
+                                            <input id="consignmentOrBuyer" onkeyup="filterFunction()" name="consignmentOrBuyer" value="@Model.ConsignmentOrBuyer" placeholder="Customer Type" type="text" class="form-control" />
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label for="totalBoxes">Number Of Posters *</label>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <input type="number" id="totalBoxes" value="@Model.TotalBoxes" name="totalBoxes" min="0" class="form-control" />
+                                        </div>
+
+                                        <div class="col-md-2">
+                                            <label for="notes">Notes</label>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <textarea rows="3" class="form-control" cols="50" value="@Model.Notes" id="notes" name="notes"></textarea>
+                                        </div>
+                                        <div class="col-md-6"></div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="wisl-panel-footer text-center">
+        <button type="button" id="btnSaveCustomer" onclick="saveCustomerInformation()" class="btn btn-primary"><i class="fa fa-save" style="font-size:13px;color:white"></i> Save</button>
+        <button type="button" class="btn btn-primary" onclick="clearForm()" id="btnClear"><i class="fa fa-undo" style="font-size:13px;color:white"></i> Clear</button>
+        <button type="button" class="btn btn-primary" onclick="DeleteCustomer()"><i class="fa fa-trash" style="font-size:13px;color:white"></i> Delete</button>
+        <button type="button" class="btn btn-primary" onclick="backToList()" id="backtolist"><i class="fa fa-backward" style="font-size:13px;color:white"></i> Back</button>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        UserType();
+    });
+
+    $.validator.setDefaults({
+        ignore: ""
+    });
+
+    function UserType() {
+        $("#consignmentOrBuyer").kendoComboBox({
+            dataTextField: "text",
+            dataValueField: "value",
+            dataSource: [
+                { text: "Buyer", value: "B" },
+                { text: "Consignment", value: "C" }
+            ],
+            filter: "contains",
+            suggest: true,
+            index: 3
+        });
+    }
+
+    function filterFunction() {
+        var input, filter, ul, li, a, i;
+        input = document.getElementById("consignmentOrBuyer");
+        filter = input.value.toUpperCase();
+        div = document.getElementById("myDropdown");
+        a = div.getElementsByTagName("a");
+        for (i = 0; i < a.length; i++) {
+            txtValue = a[i].textContent || a[i].innerText;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                a[i].style.display = "";
+            } else {
+                a[i].style.display = "none";
+            }
+        }
+    }
+
+    function saveCustomerInformation() {
+        $("#customerForm").validate({
+            rules: {
+                accountName: "required",
+                shippingStreet: "required",
+                shippingState: "required",
+                shippingCity: "required",
+                shippingCode: "required",
+                contactName: "required",
+                contactPhone: "required",
+                consignmentOrBuyer: "required",
+                deliveryDay: {
+                    required: true,
+                    digits: true
+                },
+                totalBoxes: {
+                    required: true,
+                    digits: true
+                }
+            },
+            messages: {
+                accountName: "Account Name Required!!",
+                shippingStreet: "Shipping Street Required!!",
+                shippingState: "Shipping State Required!!",
+                shippingCity: "Shipping City Required!!",
+                shippingCode: "Shipping Code Required!!",
+                contactName: "Contact Name Required!!",
+                contactPhone: "Contact Phone Required!!",
+                consignmentOrBuyer: "Customer Type Required!",
+                deliveryDay: {
+                    required: 'Delivery Day Required!!',
+                    digits: 'Digits only!!'
+                },
+                totalBoxes: {
+                    required: 'Number Of Posters Required!!',
+                    digits: 'Digits only!!'
+                }
+            },
+            errorElement: "div"
+        });
+
+        if ($("#customerForm").valid()) {
+            
+            var addCustomer = {
+                CustomerId: $('#id').val(),
+                AccountName: $('#accountName').val(),
+                ShippingStreet: $('#shippingStreet').val(),
+                ShippingState: $('#shippingState').val(),
+                ShippingCity: $('#shippingCity').val(),
+                ShippingCode: $('#shippingCode').val(),
+                ContactName: $('#contactName').val(),
+                ContactPhone: $('#contactPhone').val(),
+                AlternateContact: $('#alternateContact').val(),
+                ConsignmentOrBuyer: $('#consignmentOrBuyer').val(),
+                DeliveryDay: $('#deliveryDay').val(),
+                TotalBoxes: $('#totalBoxes').val(),
+                Email: $('#email').val(),
+                Notes: $('#notes').val()
+            };
+
+            var customerModel = JSON.stringify(addCustomer);
+
+            Loading(true);
+
+            $.ajax({
+                type: "POST",
+                url: "/Customer/AddCustomer",
+                data: customerModel,
+                dataType: "json",
+                contentType: "application/json",
+                success: function (respose) {
+                    Loading(false);
+                    console.log(respose);
+                    if (respose.output === "Success") {
+                        swal("Success", respose.msg, "success");
+                        window.location.href = "/Customer/CustomerList";
+                        return false;
+                    }
+                    else if (respose.output === "DataTypeIssue") {
+                        swal("Oops", respose.msg, "error");
+                        return false;
+                    }
+                    else {
+                        swal("Oops", respose.msg, "error");
+                        return false;
+                    }
+                },
+                error: function (respose) {
+                    swal("Oops!", respose.msg, "error");
+                    return false;
+                },
+            });
+        }
+    }
+
+    function clearForm() {
+        $('#accountName').val("");
+        $('#shippingStreet').val("");
+        $('#shippingCity').val("");
+        $('#shippingCode').val("");
+        $('#contactName').val("");
+        $('#contactPhone').val("");
+        $('#consignmentOrBuyer').val("");
+        $('#deliveryDay').val(0);
+        $('#totalBoxes').val(0);
+        $("#customerForm").validate().resetForm();
+    }
+
+    function backToList() {
+        window.location = "/Customer/CustomerList";
+    }
+
+    function DeleteCustomer() {
+        var match = RegExp('[?&]CustomerId=([^&]*)').exec(window.location.search);
+        var CustId = match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+        Loading(true);
+        $.ajax({
+            type: "POST",
+            url: "/Customer/DeleteCustomer?CustomerId=" + parseInt(CustId),
+            contentType: false,
+            success: function (respose) {
+                Loading(false);
+                console.log(respose);
+                if (respose.output === "Success") {
+                    swal("Success", respose.msg, "success");
+                    window.location.href = "/Customer/CustomerList"
+                    return false;
+                }
+                else {
+                    swal("Oops", respose.msg, "error");
+                    return false;
+                }
+            },
+            error: function (respose) {
+                swal("Oops!", respose.msg, "error");
+                return false;
+            },
+        });
+    }
+</script>
+
+<style type="text/css">
+    .error {
+        border-color: red !important;
+        display: block;
+    }
+
+    div.error {
+        color: red;
+        display: inline;
+        float: left;
+    }
+</style>

@@ -1,0 +1,70 @@
+﻿<div class="col-md-12 p-0">
+    <div class="box box-primary">
+        <div class="box-header with-border">
+            <input type="hidden" id="deliveryType" value="@ViewBag.Title" />
+            <h3 class="box-title">@ViewBag.Title Deliveries</h3>
+        </div>
+        <div class="box-body">
+            <div id="customerOrderList"></div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+
+    var url = "/Home/GetCustomerList";
+
+    $(document).ready(function () {
+        customerOrderListGrid();
+    });
+
+    function customerOrderListGrid() {
+        var deliveryType = $('#deliveryType').val();
+
+        $.ajax({
+            type: "GET",
+            url: url,
+            data: { deliveryType: deliveryType, isFromDashboard: 'No' },
+            dataType: "json",
+            success: function (response) {
+                console.log(response);
+                var gridDataSource = response.returnvalue;
+                $("#customerOrderList").kendoGrid({
+                    dataSource: gridDataSource,
+                    scrollable: true,
+                    filterable: true,
+                    resizable: true,
+                    pageable: {
+                        refresh: true,
+                        input: true,
+                        pageSize: 20,
+                        numeric: false,
+                        pageSizes: [20, 50, 100, 200]
+                    },
+                    sortable: true,
+                    columns: [
+                        { field: "customerId", title: "Customer Id", width: 100, media: "(min-width: 100px;)", filterable: false, hidden: true },
+                        { field: "accountName", title: "Customer Name", width: 140, media: "(min-width: 120px;)", filterable: { extra: false } },
+                        { field: "shippingStreet", title: "Shipping Street", width: 100, media: "(min-width: 100px;)", filterable: { extra: false } },
+                        { field: "shippingCity", title: "Shipping City", width: 100, media: "(min-width: 100px;)", filterable: { extra: false } },
+                        { field: "shippingState", title: "Shipping State", width: 100, media: "(min-width: 100px;)", filterable: { extra: false } },
+                        { field: "shippingCode", title: "Shipping Code", width: 120, media: "(min-width: 120px;)", filterable: { extra: false } },
+                        { field: "deliveryDate", title: "Delivery Date", width: 120, media: "(min-width: 120px;)",
+                            filterable: {
+                                operators: {
+                                    string: {
+                                        eq: "Equal to",
+                                        neq: "Not equal to"
+                                    }
+                                },
+                                extra: false
+                            }
+                        },
+                        //{ field: "proposedDate", title: "Proposed Date", width: 100, media: "(min-width: 100px;)", filterable: false },
+                        //{ field: "isActive", title: "Status", width: 100, media: "(min-width: 100px;)", filterable: false }
+                    ]
+                });
+            }
+        });
+    }
+</script>
+

@@ -1,0 +1,494 @@
+﻿@model PosterDelivery.Utility.EntityModel.ProductsModel
+@using Newtonsoft.Json
+@{
+    ViewData["Title"] = "Scan pickup items";
+}
+<head>
+    <link href="~/Kendo/Content/loading/loading.css" rel="stylesheet" />
+    <script src="~/Kendo/Content/loading/loading.js"></script>
+    <script src="~/js/PhoneMask.js"></script>
+</head>
+
+<div class="col-md-12 p-0">
+    <div class="row">
+        <div class="col-md-8 mb-3">
+            <input type="text" id="txtscancode" style="width: 70%;z-index:10;" placeholder="Scan items to pickup..." class="k-textbox" />
+        </div>
+        <div id="dvScanComplete" style="display:none;" class="mb-3">
+            <button id="btnSearch" class="btn btn-sm btn-info" onclick="AddScannedItem()" style="z-index:10;"><i class="fa" style="color:white;"></i> Scanning complete</button>
+        </div>
+        <div id="dvMovenext" class="col-md-2 mb-3">
+            <button id="btnSearch" class="btn btn-sm btn-info" onclick="MoveToDeliveryScan()" style="margin-right:10px;z-index:10;"><i class="fa" style="color:white;"></i> Move next</button>
+        </div>
+    </div>
+    <div class="box box-primary" style="margin-top:30px;">
+        @*		<div class="form-inline float-right">
+        </div>
+        *@
+        <div class="box-header with-border">
+            <h3 class="box-title">@ViewBag.Title - @Model.CustomerName (#@Model.CustomerId)</h3>
+        </div>
+
+        <div class="box-body">
+            <div id="ScanningList"></div>
+        </div>
+    </div>
+</div>
+
+<div id="ScanModal" class="modal" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" style="margin-left: 5%; min-width: 90%">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 style="font-family: Gilroy;" class="modal-title">Sold items invoice</h4>
+            </div>
+            <div class="modal-body">
+                <div id="dvInvoice" class="box box-primary" style="margin-left:1%; margin-top:1%; width:100%;">
+                    <form id="submitForm" style="margin-top:20px; font-family: Gilroy;">
+                        <div class="form-group col">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label style="vertical-align:middle;">Sold Quantity *</label>
+                                </div>
+                                <div class="col-md-8 mb-3">
+                                    <input type="number" onchange="changeSoldQuantity()" min="0" id="txtQuantitycount" name="Quantitycount" style="width: 40%;" class="k-textbox form-control" />
+                                </div>
+                            </div>
+                            <div class="row" id="divSerialNumber">
+                                <div class="col-md-4">
+                                    <label style="vertical-align:middle;">Invoice Serial *</label>
+                                </div>
+                                <div class="col-md-8 mb-3">
+                                    <input type="text" id="txtInvoiceSerialNumber" name="InvoiceSerial" style="width: 40%;" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="row" id="divInvoiceAmount">
+                                <div class="col-md-4">
+                                    <label style="vertical-align:middle;">Invoice Amount *</label>
+                                </div>
+                                <div class="col-md-8 mb-3">
+                                    <input type="text" id="txtInvoiceAmount" name="InvoiceAmount" style="width: 40%;" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="row" id="divInvoiceUpload">
+                                <div class="col-md-4">
+                                    <label style="vertical-align:middle;">Invoice Upload *</label>
+                                </div>
+                                <div class="col-md-8 mb-3">
+                                    <input type="file" id="txtInvoiceFile" name="FileInvoiceAmount" style="height: 88%;" class="k-textbox form-control" />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6" style="margin-bottom:20px;">
+                                    <button id="btnSubmitInvoice" onclick="SubmitInvoice()" type="button" class="btn btn-sm btn-info"><i class="fa" style="color:white;"></i>Submit Invoice</button>
+                                </div>
+                            </div>
+                            <div>
+                                <input id="txtHiddenHeaderId" type="hidden" />
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="form-group-sm">
+                    <div class="box-body">
+                        <div id="ScanList"></div>
+                    </div>
+                </div>
+                <div class="col-md-12 text-center" style="margin-top:10px">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="confirmModal" class="modal" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" style="min-width: 60%;">
+        <div class="modal-content">
+            <div class="modal-body">
+                <form class="col-md-12 form-horizontal" style="text-align: center;">
+                    <div class="form-group" style="font-family: Gilroy;">
+                        <h5 style="font-family: Gilroy;">There are pending items from last delivery to this store. <br />You want generate the invoice and mark them sold?</h5>
+                    </div>
+                    <button type="button" id="btnConform" class="btn btn-success">Confirm</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="HistoryTemplate" type="text/x-kendo-template">
+    <a style="font-size:11px; text-decoration: none;" href="javascript:ShowCustomerVisitedList(#= customerId #)" target="_self">View History</a>
+</script>
+
+<script>
+    var gridDataSource;
+
+    $(function () {
+        // Focus on load
+        $('#txtscancode').focus();
+        // Force focus
+        $('#txtscancode').focusout(function () {
+            if (!$("#ScanModal").hasClass('show')) {
+                $('#txtscancode').focus();
+            }
+        });
+
+
+
+        $('#txtscancode').change(function () {
+            //alert(1);
+            if (!$("#ScanModal").hasClass('show')) {
+                if ('@Model.lstProductDetils' == null) {
+                }
+                else {
+                    var productsData = @Html.Raw(JsonConvert.SerializeObject(Model.lstProductDetils));
+                    console.log(productsData);
+                    var item = productsData.filter(x => x.ProductSerial === $('#txtscancode').val());
+                    if (item.length > 0) {
+                        $("#dvMovenext").hide();
+                        $("#dvScanComplete").show();
+                        var grid = $("#ScanningList").data("kendoGrid");
+                        grid.dataSource.insert({ ProductId: item[0].ProductId, ProductSerial: $('#txtscancode').val(), ProdctName: item[0].ProductName, ProductPrice: item[0].ProductPrice });
+                    }
+                    else {
+                        swal("Error", "Invalid scan", "error");
+                    }
+                    $('#txtscancode').val('').focus();
+                }
+            }
+            //alert(2);
+        });
+
+    });
+    $(document).ready(function () {
+        //This is for test purpose
+        //var dummydata = [{ ProductId: "1", ProductSerial: "XY1234", ProdctName: "Test", ProductPrice: "5" },
+        //{ ProductId: "3", ProductSerial: "123456", ProdctName: "Test Product", ProductPrice: "10" },
+        //]
+
+        $("#ScanningList").kendoGrid({
+            //dataSource: dummydata,
+            scrollable: true,
+            filterable: true,
+            pageable: {
+                refresh: true,
+                input: true,
+                pageSize: 20,
+                numeric: false,
+                pageSizes: [20, 50, 100, 200],
+                message: {
+                    empty: 'No Data',
+                    allPages: 'All'
+                }
+            },
+            sortable: true,
+            columns: [
+                { field: "ProductId", title: "Product Id", width: 100, media: "(min-width: 100px;)", filterable: false, hidden: false },
+                { field: "ProductSerial", title: "Product Serial", width: 100, media: "(min-width: 100px;)", filterable: false },
+                { field: "ProdctName", title: "Product Name", width: 100, media: "(min-width: 100px;)", filterable: false },
+                { field: "ProductPrice", title: "Product Price", width: 100, media: "(min-width: 100px;)", filterable: false },
+            ]
+        });
+    });
+
+    //function AddScannedItem() {
+    //	var grid = $("#ScanningList").data("kendoGrid");
+    //	var itemIds = grid.dataSource.view().map(item => item.ProductId);
+    //	console.log(itemIds);
+    //}
+
+    function changeSoldQuantity(){
+        var soldQuantity = parseInt($("input[name=Quantitycount]").val());
+
+        if (soldQuantity > 0) {
+            $("#divSerialNumber").show();
+            $("#divInvoiceUpload").show();
+            $("#divInvoiceAmount").show();
+        }
+        else {
+            $("#divSerialNumber").hide();
+            $("#divInvoiceUpload").hide();
+            $("#divInvoiceAmount").hide();
+
+            $("#txtInvoiceSerial").val('');
+            $("#txtInvoiceAmount").val(0);
+        }
+    }
+
+    function AddScannedItem() {
+        var dataSource = $("#ScanningList").data("kendoGrid").dataSource;
+        var filteredDataSource = new kendo.data.DataSource({
+            data: dataSource.data(),
+            filter: dataSource.filter()
+        });
+
+        filteredDataSource.read();
+        var data = filteredDataSource.view();
+
+        var gridData = [];
+
+        for (var i = 0; i < data.length; i++) {
+            gridData.push({
+                customerId: '@Model.CustomerId',
+                DriverCustomerTrackId: '@Model.DriverCustomerTrackId',
+                ProductId: data[i].ProductId
+            })
+        }
+
+        Loading(true);
+        $.ajax({
+            type: "POST",
+            url: "/ShipmentTracking/CapturePickupScan",
+            data: JSON.stringify(gridData),
+            dataType: "json",
+            contentType: "application/json",
+            success: function (response) {
+                Loading(false);
+                console.log(response);
+                var gridDataSource = response.returnvalue;
+                if (response.output === "Success") {
+                    swal("Success", "Pickup completed. Invoice generated.", "success");
+                    if (gridDataSource.length == 1 && response.returnvalue[0].productId == 0) {
+                        $('#txtQuantitycount').val(response.returnvalue[0].soldQuantity);
+                        $('#txtHiddenHeaderId').val(response.returnvalue[0].headerId);
+
+                        changeSoldQuantity();
+                    }
+                    else {
+                        $('#txtQuantitycount').val(response.returnvalue[0].soldQuantity);
+                        $('#txtHiddenHeaderId').val(response.returnvalue[0].headerId);
+
+                        changeSoldQuantity();
+
+                        let sum = 0;
+                        gridDataSource.forEach(item => {
+                            sum += item.productPrice * item.soldQuantity;
+                        });
+                        $('#txtInvoiceAmount').val(sum);
+
+                        $(".k-grid-toolbar", "#ScanList").prepend("<h1>Sold Item</h1>");
+                        $("#ScanList").kendoGrid({
+                            dataSource: gridDataSource,
+                            scrollable: true,
+                            filterable: true,
+                            resizable: true,
+                            pageable: {
+                                refresh: true,
+                                input: true,
+                                pageSize: 20,
+                                numeric: false,
+                                pageSizes: [20, 50, 100, 200]
+                            },
+                            sortable: true,
+                            columns: [
+                                { field: "headerId", title: "HeaderId", width: 100, media: "(min-width: 80px;)", filterable: false, hidden: true },
+                                { field: "initialRefHederId", title: "InitialRefHederId", width: 100, media: "(min-width: 100px;)", filterable: false, hidden: true },
+                                { field: "productId", title: "ProductId", width: 100, media: "(min-width: 120px;)", filterable: false },
+                                { field: "productSerial", title: "Product Serial", width: "12%", filterable: false },
+                                { field: "productName", title: "Product Name", width: 100, media: "(min-width: 80px;)", filterable: false },
+                                { field: "productPrice", title: "Product Price", width: 100, media: "(min-width: 100px;)", filterable: false },
+                                { field: "soldQuantity", title: "Sold Quantity", width: 100, media: "(min-width: 120px;)", filterable: false }
+                            ]
+                        });
+                    }
+                    $("#ScanModal").modal();
+                    return false;
+                }
+                else {
+                    swal("Oops", response.msg, "error");
+                    return false;
+                }
+            },
+            error: function (response) {
+                Loading(false);
+                swal("Oops!", response.msg, "error");
+                return false;
+            },
+        });
+    }
+
+    function MoveToDeliveryScan() {
+        Loading(true);
+        $.ajax({
+            type: "POST",
+            url: "/ShipmentTracking/GetScanItemWithoutPickUp?customerId=" + '@Model.CustomerId' + "&driverCustomerTrackId=" + '@Model.DriverCustomerTrackId',
+            //data: JSON.stringify(gridData),
+            dataType: "json",
+            contentType: "application/json",
+            success: function (response) {
+                Loading(false);
+                console.log(response);
+                var gridDataSource = response.returnvalue;
+
+                if (response.output === "Success") {
+
+                    if (gridDataSource.length == 1 && response.returnvalue[0].productId == -1) {
+                        $("#confirmModal").modal();
+
+                        $("#btnConform").on('click', function () {
+                            $('#confirmModal').modal('hide');
+
+                            $('#txtQuantitycount').val(response.returnvalue[0].soldQuantity);
+                            $('#txtHiddenHeaderId').val(response.returnvalue[0].headerId);
+
+                            $("#ScanModal").modal();
+                        });
+                    }
+                    else if (gridDataSource.length >= 1 && response.returnvalue[0].productId > 0) {
+                        $("#confirmModal").modal();
+
+                        $("#btnConform").on('click', function () {
+                            $('#confirmModal').modal('hide');
+
+                            $('#txtQuantitycount').val(response.returnvalue[0].soldQuantity);
+                            $('#txtHiddenHeaderId').val(response.returnvalue[0].headerId);
+                            $(".k-grid-toolbar", "#ScanList").prepend("<h1>Sold Item</h1>");
+                            $("#ScanList").kendoGrid({
+                                dataSource: gridDataSource,
+                                scrollable: true,
+                                filterable: true,
+                                resizable: true,
+                                pageable: {
+                                    refresh: true,
+                                    input: true,
+                                    pageSize: 20,
+                                    numeric: false,
+                                    pageSizes: [20, 50, 100, 200]
+                                },
+                                sortable: true,
+                                columns: [
+                                    { field: "headerId", title: "HeaderId", width: 100, media: "(min-width: 80px;)", filterable: false, hidden: true },
+                                    { field: "initialRefHederId", title: "InitialRefHederId", width: 100, media: "(min-width: 100px;)", filterable: false, hidden: true },
+                                    { field: "productId", title: "ProductId", width: 100, media: "(min-width: 120px;)", filterable: false },
+                                    { field: "productSerial", title: "Product Serial", width: "12%", filterable: false },
+                                    { field: "productName", title: "Product Name", width: 100, media: "(min-width: 80px;)", filterable: false },
+                                    { field: "productPrice", title: "Product Price", width: 100, media: "(min-width: 100px;)", filterable: false },
+                                    { field: "soldQuantity", title: "Sold Quantity", width: 100, media: "(min-width: 120px;)", filterable: false }
+                                ]
+                            });
+
+                            $("#ScanModal").modal();
+                            $("#ScanModal").modal();
+                        });
+                    }
+                    else {
+                        window.location.href = "/ShipmentTracking/StartDeliveryScanning?customerId=" + '@Model.CustomerId' + "&driverCustomerTrackId=" + '@Model.DriverCustomerTrackId' + "";
+                    }
+
+                    return false;
+                }
+                else {
+                    swal("Oops", response.msg, "error");
+                    return false;
+                }
+            },
+            error: function (response) {
+                Loading(false);
+                swal("Oops!", response.msg, "error");
+                return false;
+            },
+        });
+    }
+
+    function SubmitInvoice() {
+        $("#submitForm").validate({
+            rules: {
+                InvoiceSerial: "required",
+                InvoiceAmount: "required",
+                FileInvoiceAmount: "required"
+            },
+            messages: {
+                InvoiceSerial: "Invoice Serial Required !!",
+                InvoiceAmount: "Invoice Amount Required !!",
+                FileInvoiceAmount: "Invoice File Required !!"
+            },
+            errorElement: "div"
+        });
+
+        var file = document.getElementById('txtInvoiceFile');
+        var formData = new FormData();
+        formData.append("file", file.files[0]);
+        formData.append('HeaderId', $("#txtHiddenHeaderId").val());
+        formData.append('customerId', @Model.CustomerId);
+        formData.append('DriverCustomerTrackId', @Model.DriverCustomerTrackId);
+        formData.append('InvoiceAmount', $("#txtInvoiceAmount").val());
+        formData.append('InvoiceSerialNum', $("#txtInvoiceSerialNumber").val());
+        formData.append('DeliveryCount', 0);
+        formData.append('PickupCount', -1);
+        formData.append('SoldQuantity', $("#txtQuantitycount").val());
+
+        if (parseInt($("input[name=Quantitycount]").val()) > 0) 
+        {
+            if ($("#submitForm").valid()) 
+            {
+                Loading(true);
+                $.ajax({
+                    type: "POST",
+                    url: "/Invoice/CaptureStoreInvoice",
+                    data: formData,
+                    traditional: true,
+                    //dataType: "json",
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        Loading(false);
+                        if (response.output === "Success") {
+                            swal("Success", response.msg, "success");
+
+                            window.location.href = "/ShipmentTracking/StartDeliveryScanning?customerId=" + '@Model.CustomerId' + "&driverCustomerTrackId=" + '@Model.DriverCustomerTrackId' + "";
+
+                            return false;
+                        }
+                        else {
+                            swal("Oops", response.msg, "error");
+                            return false;
+                        }
+                    },
+                    error: function (response) {
+                        swal("Oops!", response.msg, "error");
+                        return false;
+                    },
+                });
+            }
+        }
+        else 
+        {
+            Loading(true);
+            $.ajax({
+                type: "POST",
+                url: "/Invoice/CaptureStoreInvoice",
+                data: formData,
+                traditional: true,
+                //dataType: "json",
+                contentType: false,
+                processData: false,
+                success: function (response) {
+                    Loading(false);
+                    if (response.output === "Success") {
+                        swal("Success", response.msg, "success");
+
+                        window.location.href = "/ShipmentTracking/StartDeliveryScanning?customerId=" + '@Model.CustomerId' + "&driverCustomerTrackId=" + '@Model.DriverCustomerTrackId' + "";
+
+                        return false;
+                    }
+                    else {
+                        swal("Oops", response.msg, "error");
+                        return false;
+                    }
+                },
+                error: function (response) {
+                    swal("Oops!", response.msg, "error");
+                    return false;
+                },
+            });
+        }
+    }
+
+        //function MoveToDeliveryScan()
+        //{
+        //	window.location.href = "/ShipmentTracking/StartDeliveryScanning?customerId=" + '@Model.CustomerId' + "&driverCustomerTrackId=" + '@Model.DriverCustomerTrackId' + "";
+        //}
+
+</script>

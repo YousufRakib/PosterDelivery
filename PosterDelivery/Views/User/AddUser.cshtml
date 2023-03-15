@@ -1,0 +1,214 @@
+﻿@model PosterDelivery.Utility.EntityModel.Registration
+
+@{
+    //ViewBag.Title = "Add User";
+}
+
+<div class="col-md-12">
+    <div class="box box-primary">
+        <form id="userForm">
+            <div class="box-header with-border">
+                @if (Model.UserId > 0)
+                {
+                    <h3 class="box-title">Edit User</h3>
+                }
+                else
+                {
+                    <h3 class="box-title">Add User</h3>
+                }
+            </div>
+
+            <div class="box-body">
+                <div class="form-group-sm">
+                    <div class="row">
+                        <input id="id" name="userId" type="hidden" value="@Model.UserId" />
+                        <div class="col-md-2"></div>
+                        <div class="col-md-8">
+                            <div class="row" style="margin-top:5px">
+                                <div class="col-md-5">
+                                    <label for="firstName">First Name *</label>
+                                </div>
+                                <div class="col-md-7">
+                                    <input class="form-control" type="text" placeholder="First Name" id="firstName" name="firstName" value="@Model.FirstName" />
+                                </div>
+                            </div>
+                            <div class="row" style="margin-top:5px">
+                                <div class="col-md-5">
+                                    <label for="middleName">Middle Name</label>
+                                </div>
+                                <div class="col-md-7">
+                                    <input class="form-control" type="text" placeholder="Middle Name" id="middleName" name="middleName" value="@Model.MiddleName" />
+                                </div>
+                            </div>
+                            <div class="row" style="margin-top:5px">
+                                <div class="col-md-5">
+                                    <label for="lastName">Last Name *</label>
+                                </div>
+                                <div class="col-md-7">
+                                    <input class="form-control" type="text" placeholder="Last Name" id="lastName" name="lastName" value="@Model.LastName" />
+                                </div>
+                            </div>
+                            <div class="row" style="margin-top:5px">
+                                <div class="col-md-5"><label for="emailId">Email *</label></div>
+                                <div class="col-md-7"><input class="form-control" placeholder="Email" type="email" id="emailId" name="emailId" value="@Model.EmailId" required/></div>
+                            </div>
+                            <div class="row" style="margin-top:5px">
+                                <div class="col-md-5"><label for="userName">Username *</label></div>
+                                <div class="col-md-7"><input class="form-control" placeholder="Username" type="text" id="userName" name="userName" value="@Model.UserName" /></div>
+                            </div>
+                            <div class="row" style="margin-top:5px">
+                                <div class="col-md-5"><label for="password">Password *</label></div>
+                                <div class="col-md-7">
+                                    <input type="password" class="form-control has-feedback" placeholder="Password" id="password" name="password" value="@Model.Password" required />
+                                </div>
+                            </div>
+                            <div class="row" style="margin-top:5px">
+                                <div class="col-md-5"><label for="userRole">User Role *</label></div>
+                                <div class="col-md-7">
+                                    <select class="form-control" placeholder="Select User Role" id="userRole" name="userRole" required>
+                                        <option value="" disabled selected>Select User Role</option>
+                                        @if (ViewBag.Roles != null)
+                                        {
+                                            foreach (var item in ViewBag.Roles) 
+                                            {
+                                                if (item.RoleName != null)
+                                                {
+                                                    <option value="@item.RoleId">
+                                                        @item.RoleName
+                                                    </option>
+                                                }
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            @if (Model.UserId > 0)
+                            {
+                                <div class="row" style="margin-top:5px">
+                                    <div class="col-md-5"><label for="password">Status</label></div>
+                                    <div class="col-md-7">
+                                        @if (Model.IsActive == "1")
+                                        {
+                                            <label style="width:80px;"><input type="radio" id="rdoActive" value="1" name="rdoIsActive" checked>&nbsp;Active</label>
+                                            <label style="width:110px;"><input type="radio" id="rdoInActive" name="rdoIsActive" value="0">&nbsp;Inactive</label>
+                                        }
+                                        else
+                                        {
+                                            <label style="width:80px;"><input type="radio" id="rdoActive" name="rdoIsActive" value="1">&nbsp;Active</label>
+                                            <label style="width:110px;"><input type="radio" id="rdoInActive" name="rdoIsActive" value="0" checked>&nbsp;Inactive</label>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div class="col-md-2"> </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="wisl-panel-footer text-center">
+        <input type="submit" id="btnSaveUserInfo" onclick="saveUserInformation()" value="Save" class="btn btn-primary" />
+        <input type="button" id="btnClear" onclick="clearForm()" value="Clear" class="btn btn-primary" />
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    function saveUserInformation() {
+        $("#userForm").validate({
+            rules: {
+                firstName: "required",
+                lastName: "required",
+                emailId: "required",
+                userName: "required",
+                password: "required",
+                userRole: "required"
+            },
+            messages: {
+                firstName: "First Name is Required!!",
+                lastName: "Last Name is Required!!",
+                emailId: "Email is Required! or Incorrect!",
+                userName: "Username is Required!!",
+                password: "Password is Required!!",
+                userRole: "Please select User Role!!"
+            },
+            errorElement: "div"
+        });
+
+        if ($("#userForm").valid()) {
+            var isActive = '1';
+
+            if ($('#id').val() > 0) {
+                isActive = $('input[name=rdoIsActive]:checked').val();
+            }
+            var addUser = {
+                UserId: $('#id').val(),
+                FirstName: $('#firstName').val(),
+                LastName: $('#lastName').val(),
+                MiddleName: $('#middleName').val(),
+                EmailId: $('#emailId').val(),
+                UserName: $('#userName').val(),
+                Password: $('#password').val(),
+                UserRole: $('#userRole').val(),
+                IsActive: $('input[name=rdoIsActive]:checked').val(),
+            };
+
+            var userModel = JSON.stringify(addUser);
+
+            debugger;
+
+            Loading(true);
+            $.ajax({
+                type: "POST",
+                url: "/User/AddUser",
+                data: userModel,
+                dataType: "json",
+                contentType: "application/json",
+                success: function (respose) {
+                    Loading(false);
+                    console.log(respose);
+                    if (respose.output === "Success") {
+                        swal("Success", respose.msg, "success");
+                        window.location.href = "/User/UserList";
+                        return false;
+                    }
+                    else if (respose.output === "ExistingUser") {
+                        swal("Oops", respose.msg, "error");
+                        return false;
+                    }
+                    else if (respose.output === "DataTypeIssue") {
+                        swal("Oops", respose.msg, "error");
+                        return false;
+                    }
+                    else {
+                        swal("Oops", respose.msg, "error");
+                        return false;
+                    }
+                },
+                error: function (respose) {
+                    swal("Oops!", respose.msg, "error");
+                    return false;
+                },
+            });
+        }
+        //else{
+        //    swal("Oops!", "Please fillup required field!!", "error");
+        //    return false;
+        //}
+    }
+
+    function clearForm() {
+        $('#firstName').val("");
+        $('#lastName').val("");
+        $('#middleName').val("");
+        $('#emailId').val("");
+        $('#userName').val("");
+        $('#password').val("");
+        $('#userRole').val("");
+        $("#userForm").validate().resetForm();
+    }
+</script>
+
+
+

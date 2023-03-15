@@ -1,0 +1,309 @@
+@{
+    ViewBag.Title = "Invoice List";
+}
+
+<div id="FileUploadModal" class="modal" role="dialog">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Add Invoice</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group-sm">
+                    <form id="userForm" enctype="multipart/form-data" method="post">
+                        <div class="col">
+                            <div class="col-md-12">
+                                <div class="row" style="margin-top:5px">
+                                    <div class="col-md-5">
+                                        <label for="InvoiceSerialNo">Invoice Serial No.</label>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <input type="text" id="txtInvoiceSerialNo" name="txtInvoiceSerialNo" class="form-control"
+                                               placeholder="Invoice Serial No." pattern="^[A-Za-z_-][A-Za-z0-9_-]*$" required />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="row" style="margin-top:5px">
+                                    <div class="col-md-5">
+                                        <label for="firstName">Invoice Amount </label>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <input type="number" id="txtInvoiceAmount" name="txtInvoiceAmount" min="0" class="form-control" placeholder="Amount" />
+                                        @*<input class="form-control" type="text" placeholder="Amount" name="txtInvoiceAmount" id="txtInvoiceAmount" />*@
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="row" style="margin-top:5px">
+                                    <div class="col-md-5">
+                                        <label for="txtInvoiceDate">Invoice Date </label>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <input class="form-control" id="txtInvoiceDate" name="txtInvoiceDate" />
+                                        @*<input class="form-control" type="text" placeholder="Invoice Date ex. 1/4/2022" id="txtInvoiceDate" />*@
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <div class="row" style="margin-top:5px">
+                                    <div class="col-md-5">
+                                        <label for="fileUpload">Upload File </label>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <label style="cursor: pointer; width: 100%;">
+                                            <input type="file" id="fileUpload" name="file" style="width: 100% !important;display:block; margin-bottom:2%;"
+                                                   class="mendatory" accept="image/png, image/jpeg, image/jpg;capture=camera" onchange="validateFileSize(this)" />
+                                        </label>
+                                        @*<input class="form-control" type="file" name="file" id="fileUpload" accept="image/*;capture=camera" />*@
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-12 text-center" style="margin-top:10px">
+                    <button type="button" id="btnConformSignOut" onclick="SubmitInvoice()" class="btn btn-success">Submit</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<div class="col-md-12">
+    <div class="box box-primary">
+        <div class="box-header with-border">
+            <h3 class="box-title">@ViewBag.Title - @ViewBag.CustomerName (#@ViewBag.CustomerId)</h3>
+        </div>
+
+        <div class="box-body">
+            <div id="InvoiceList"></div>
+        </div>
+    </div>
+    <div class="wisl-panel-footer text-center">
+        <button type="button" class="btn btn-primary" onclick="backToList()" id="backtolist"><i class="fa fa-backward" style="font-size:13px;color:white"></i> Back</button>
+    </div>
+</div>
+
+<div id="window">
+    <img id="invoiceImageUrl" src="#" style="width: 100%; height: 100%" />
+</div>
+
+<script id="actionTemplate" type="text/x-kendo-template">
+    <a style="font-size:11px; text-decoration: none;" href="/Invoice/Download?invoiceId=#= invoiceHeaderId #" class="btn btn-small btn-info">Download</a>
+</script>
+
+<script id="linkTemplate" type="text/x-kendo-template">
+    <a href="javascript:openInvoiceImagePopup(#= invoiceHeaderId #)">#= invoiceSerialNo #</a>
+</script>
+
+<script type="text/javascript">
+    var customerId = "";
+    let popupWindow = null;
+
+
+    function backToList() {
+        window.location = "/Customer/CustomerList";
+    }
+    function SubmitInvoice() {
+        $("#userForm").validate({
+            rules: {
+                txtInvoiceAmount: "required",
+                txtInvoiceSerialNo: "required"
+            },
+            messages: {
+                txtInvoiceAmount: "Invoice Amount is Required!!",
+                txtInvoiceSerialNo: "Invoice Serial No. is Required!!"
+            },
+            errorElement: "div"
+        });
+
+        if ($("#userForm").valid()) {
+            var file = document.getElementById('fileUpload');
+            var formData = new FormData();
+
+            if (file.files.length > 0) {
+                for (var i = 0; i < file.files.length; i++) {
+                    formData.append("file", file.files[i]);
+                }
+            }
+            formData.append('invoiceSerialNo', $("#txtInvoiceSerialNo").val());
+            formData.append('invoiceDate', $("#txtInvoiceDate").val());
+            formData.append('invoiceAmount', $("#txtInvoiceAmount").val());
+            formData.append('customerId', parseInt(customerId));
+            console.log(formData);
+            Loading(true);
+            $.ajax({
+                url: '/Invoice/UploadFile',
+                type: 'POST',
+                data: formData,
+                //dataType: 'json',
+                contentType: false,
+                processData: false,
+                success: function (response) {
+                    Loading(false);
+                    console.log(response);
+                    if (response > 0) {
+                        $("#FileUploadModal").modal('hide');
+                        swal("Invoice saved succesfully.", "success");
+                        window.location.reload();
+                    }
+                    else {
+                        swal("Oops!", respose.msg, "error");
+                    }
+                },
+                error: function (respose) {
+                    Loading(false);
+                    swal("Oops!", respose.msg, "error");
+                    return false;
+                },
+            });
+        }
+    }
+    function OpenFileUploadModal() {
+        $("#txtInvoiceDate").val("");
+        $("#txtInvoiceAmount").val("");
+        $("#fileUpload").val('');
+        $("#FileUploadModal").modal();
+    }
+
+    $(document).ready(function () {
+        $("#txtInvoiceDate").kendoDatePicker({ format: "MM-dd-yyyy", min: new Date(2000, 1, 1), max: new Date(4000, 1, 1), });
+        customerId = "@ViewBag.CustomerId";
+        ShowInvoiceList(customerId);
+        initPopupWindow();
+    });
+
+    function initPopupWindow() {
+        var windowOptions = {
+            actions: ["Minimize", "Maximize", "Close"],
+            width: "500px",
+            height: "500px",
+            title: "Invoice Image",
+            visible: false,
+        };
+        $("#window").kendoWindow(windowOptions);
+    }
+
+    function openInvoiceImagePopup(invoiceId) {
+        const url = `/Invoice/ViewImage?invoiceId=${invoiceId}`;
+
+        document.getElementById("invoiceImageUrl").src = url;
+
+        //popupWindow.open();
+        const popup = $("#window").data("kendoWindow");
+
+        popup.open();
+        popup.center();
+    }
+
+    function ShowInvoiceList(customerId) {
+        if (customerId == "" || customerId == null) { }
+        else {
+            Loading(true);
+            $.ajax({
+                type: "Post",
+                url: "/Invoice/GetInvoiceByCustomer",
+                data: { customerId: parseInt(customerId) },
+                dataType: "json",
+                success: function (response) {
+                    Loading(false);
+                    console.log(response);
+                    var gridDataSource = response;
+                    $("#InvoiceList").kendoGrid({
+                        toolbar: [
+                            {
+                                name: "Add new invoice",
+                                text: "Add new invoice",
+                            },
+                        ],
+                        dataSource: gridDataSource,
+                        scrollable: true,
+                        filterable: true,
+                        resizable: true,
+                        pageable: {
+                            refresh: true,
+                            input: true,
+                            pageSize: 20,
+                            numeric: false,
+                            pageSizes: [20, 50, 100, 200]
+                        },
+                        sortable: true,
+                        columns: [
+                            {
+                                field: "invoiceSerialNo", title: "Invoice Serial No. #", width: 100, media: "(min-width: 100px;)", filterable: true, hidden: false,
+                                template: kendo.template($("#linkTemplate").html())
+                            },
+                            { field: "invoiceHeaderId", title: "Account #", width: 100, media: "(min-width: 100px;)", filterable: false, hidden: true },
+                            //{ field: "customerID", title: "Account #", width: 100, media: "(min-width: 100px;)", filterable: false, hidden: false },
+                            //{ field: "accountName", title: "Customer Name", width: 100, media: "(min-width: 100px;)", filterable: false },
+                            //{ field: "invoiceFileName", title: "File Name", width: 100,media: "(min-width: 100px;)",filterable: false },
+                            { field: "actualInvoiceAmount", title: "Invoice Amount", width: 100, media: "(min-width: 100px;)", filterable: true, format: "${0:c2}" },
+                            { field: "invoiceDateWithFormat", title: "Invoice Date", width: 100, media: "(min-width: 100px;)", filterable: true },
+                            {
+                                title: "Action", width: 100, media: "(min-width: 100px;)",
+                                template: kendo.template($("#actionTemplate").html())
+                            },
+                        ]
+                    });
+
+                    function searchInGrid() {
+                        var searchValue = $('#searchBox').val();
+
+                        $("#InvoiceList").data("kendoGrid").dataSource.filter({
+                            logic: "or",
+                            filters: [
+                                {
+                                    field: "invoiceFileName",
+                                    operator: "contains",
+                                    value: searchValue
+                                },
+                            ]
+                        });
+                    }
+
+                    $(".k-grid-Addnewinvoice").click(function (e) {
+                        OpenFileUploadModal();
+                    });
+
+                    $("#btnSearch").click(function () {
+                        searchInGrid();
+                    });
+
+                    $('#searchBox').mouseup(function () {
+                        setTimeout(function () {
+                            if ($('#searchBox').val() === '') {
+                                $("#InvoiceList").data("kendoGrid").dataSource.filter({});
+                            };
+                        }, 1)
+                    });
+
+                    $("#searchBox").keyup(function (event) {
+                        if (event.keyCode === 13) {
+                            searchInGrid();
+                        }
+                    });
+                },
+                error: function (respose) {
+                    Loading(false);
+                }
+            });
+        }
+
+    }
+
+    function validateFileSize(input) {
+        var fileSize = input.files[0].size / 1024 / 1024; // in MiB
+        if (fileSize > 5) {
+            swal("Oops", "File size exceeds 5 MB", "error")
+            return false;
+        }
+        return true;
+    }
+
+</script>
+

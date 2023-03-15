@@ -1,0 +1,85 @@
+
+@font-face {
+    font-family: 'Gilroy', sans-serif;
+    src: url(https://github.com/Jakob311/Posterdelivery/blob/mukesh/PosterDelivery/wwwroot/Kendo/Content/fonts/Gilroy-Light.otf);
+}
+
+@font-face {
+    font-family: 'Gilroy Bolt', sans-serif;
+    src: url(https://github.com/Jakob311/Posterdelivery/blob/mukesh/PosterDelivery/wwwroot/Kendo/Content/fonts/Gilroy-ExtraBold.otf);
+}
+
+.login-box {
+   overflow: type-here-anything;
+    width: 375px !important;
+    margin: 7% auto;
+    height: 22% !important;
+    background-color: #fff;
+    padding-top: 0px;
+    padding-bottom: 20px;
+    border-radius: 10px !important;
+    box-shadow: 2px 2px 8px #ff9800 !important;
+}
+.logo {
+    font-family: 'Gilroy', sans-serif;
+    font-weight: bold;
+}
+.login-logo {
+    color: #ff9800;
+    background-color: #fff;
+    margin-bottom: 0px !important;
+}
+
+.btn-primary {
+    background-color: #ff9800 !important;
+    border-radius: 50px !important;
+    font-family: "Gilroy", sans-serif;
+    font-weight: 700 !important;
+    padding: 10px 12px !important;
+    font-size: 22px !important;
+}
+
+    #Password:focus {
+        outline: none
+    }
+
+    .wrap {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .wrap:before {
+        content: "";
+        z-index: 10;
+        position: absolute;
+        height: 200%;
+        width: 200%;
+        top: -120%;
+        left: -120%;
+        background: linear-gradient(transparent 0%, rgba(255, 255, 255, 0.1) 45%, rgba(255, 255, 255, 0.5) 50%, rgba(255, 255, 255, 0.1) 55%, transparent 100%);
+        transition: all 2s;
+        transform: rotate(-45deg);
+        animation: shine 6s infinite forwards;
+    }
+
+    @keyframes shine {
+        0% {
+            top: -120%;
+            left: -120%;
+        }
+
+        20% {
+            left: 100%;
+            top: 100%;
+        }
+
+        40% {
+            left: 100%;
+            top: 100%;
+        }
+
+        100% {
+            left: 100%;
+            top: 100%;
+        }
+    }

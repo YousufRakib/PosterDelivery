@@ -1,0 +1,21 @@
+Cleanup the "backlog"
+	Too many outstanding commits without a PR
+	Cleanup branches
+	Flesh out issues with steps to reproduct and images to clarify
+
+*Import/export CSV file for customers
+*Convert DapperQueries to sprocs
+*Scanning QR logic
+*Publish to production (currently checin to develop publises to azurewebsite.net)
+
+some of the issues that I encountered.  Lot of boilerplate was already written when I came on board.   The data layer is based on dapper - the model could be better.  For example, the Active column in the tables is a string instead of a boolean.  Stupid stuff like that. 
+
+For front end they picked Kendo toolkit, which is fine, but it's a version from 2014 - i don't know why.  The views have a ton of repetitive JavaScript code - it was on my list to consolidate things, but really down on the list.  
+
+The existing code in lots of places was basically the minimum written to make it work.  They didn't worry about things like validations and all that - just happy path.  I fixed a lot of that and had them do it as well.  
+
+One thing that did improve is that I got Jacob and his friend (or maybe business partner Loren or something) to write more details into a github issue.  That helped.
+
+I've setup a build, so that every time u merge a pull request into develop, it kicks off a build and deploys the app to azure app service.  
+I've also setup a `sql` folder in the repository for them to check in sql scripts, but looking at it now - nothing has been checked in.  So if Azure blows up the database, well, that's that.  I kind of expected that and extracted database build script into a `sql/initial` folder, so at least there is that.
+

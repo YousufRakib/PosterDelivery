@@ -1,0 +1,343 @@
+﻿@model PosterDelivery.Utility.OrderDeliveryCount
+@{
+    ViewBag.Title = "Admin Dashboard";
+}
+
+<div class="row clearfix">
+    <div class="col-lg-3 col-md-6 col-sm-12">
+        <div class="card text-center bg-success First">
+            <div class="body" style="height:100px; cursor: pointer;" id="deliveredThisMonthId">
+                <div class="p-15 text-light">
+                    <span style="font-family: Gilroy; font-size: 18px; font-weight: 600;">Deliveries This Month</span>
+                    <h3 style="font-family: Gilroy; font-size: 32px; font-weight: 600;" for="deliveredThisMonth" id="deliveredThisMonth">@Model.MonthlyOrderDelivery</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 col-sm-12">
+        <div class="card text-center bg-primary Second">
+            <div class="body" style="height:100px; cursor: pointer;" id="deliveryTomorrowId">
+                <div class="p-15 text-light">
+                    <span style="font-family: Gilroy; font-size: 18px; font-weight: 600;">Deliveries Of Tomorrow</span>
+                    <h3 style="font-family: Gilroy; font-size: 32px; font-weight: 600;" for="deliveryTomorrow" id="deliveryTomorrow">@Model.TomorrowOrderDelivery</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 col-sm-12">
+        <div class="card text-center bg-primary Third">
+            <div class="body" style="height:100px; cursor: pointer;" id="deliveredYesterdayId">
+                <div class="p-15 text-light">
+                    <span style="font-family: Gilroy; font-size: 18px; font-weight: 600;">Deliveries Of Yesterday</span>
+                    <h3 style="font-family: Gilroy; font-size: 32px; font-weight: 600;" for="deliveredYesterday" id="deliveredYesterday">@Model.YesterdayOrderyDelivery</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 col-sm-12">
+        <div class="card text-center bg-success Fourth">
+            <div class="body" style="height:100px; cursor: pointer;" id="deliveryTodayId">
+                <div class="p-15 text-light">
+                    <span style="font-family: Gilroy; font-size: 18px; font-weight: 600;">Deliveries Of Today</span>
+                    <h3 style="font-family: Gilroy; font-size: 32px; font-weight: 600;" for="deliveryToday" id="deliveryToday">@Model.TodayOrderDelivery</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 col-md-6 col-sm-12">
+        <div class="card text-center bg-secondary Fifth">
+            <div class="body" style="height:100px; cursor: pointer;" id="inProgressStoresId">
+                <div class="p-15 text-light">
+                    <span style="font-family: Gilroy; font-size: 18px; font-weight: 600;">InProgress Stores Of This Month</span>
+                    <h3 style="font-family: Gilroy; font-size: 32px; font-weight: 600;" for="deliveredThisMonth" id="deliveredThisMonth">@Model.InProgressStores</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6 col-sm-12">
+        <div class="card text-center bg-dark Sixth">
+            <div class="body" style="height:100px; cursor: pointer;" id="completedStoresId">
+                <div class="p-15 text-light">
+                    <span style="font-family: Gilroy; font-size: 18px; font-weight: 600;">Completed Stores Of This Month</span>
+                    <h3 style="font-family: Gilroy; font-size: 32px; font-weight: 600;" for="deliveryTomorrow" id="deliveryTomorrow">@Model.CompletedStores</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6 col-sm-12">
+        <div class="card text-center bg-secondary Seventh">
+            <div class="body" style="height:100px; cursor: pointer;" id="pendingStoresId">
+                <div class="p-15 text-light">
+                    <span style="font-family: Gilroy; font-size: 18px; font-weight: 600;">Pending Stores Of This Month</span>
+                    <h3 style="font-family: Gilroy; font-size: 32px; font-weight: 600;" for="deliveredYesterday" id="deliveredYesterday">@Model.PendingStores</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="col-lg-12 col-md-12 col-sm-12" id="deliveredThisMonthDiv" style="font-family: Gilroy; font-size: 16px;">
+        <input id="orderType" type="hidden" value="" />
+
+        <div class="card">
+            <div class="header">
+                <h2 style="font-family: Gilroy; font-size: 18px; font-weight: 600; text-transform: capitalize;" id="gridHeader">Deliveries Of This Month</h2>
+            </div>
+            <div class="body">
+                <div id="orderList">
+                </div>
+
+                <div id="orderListForDriver">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <a href="#" onclick="orderMainList()" style="text-align: center; margin: auto; font-family: Gilroy; font-size: 18px; font-weight: 600;">See More</a>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var deliveryType = "Monthly";
+        $('#orderType').val(deliveryType);
+        $('#gridHeader').text('Deliveries of this month');
+          
+        $(".First").addClass('highlight-div');
+        $(".Second").removeClass('highlight-div');
+        $(".Third").removeClass('highlight-div');
+        $(".Fourth").removeClass('highlight-div');
+        $(".Fifth").removeClass('highlight-div');
+        $(".Sixth").removeClass('highlight-div');
+        $(".Seventh").removeClass('highlight-div');
+
+        ShowCustomerList(deliveryType);
+    });
+
+    $('#deliveredThisMonthId').on('click', function () {
+        var deliveryType = "Monthly";
+        $('#orderType').val(deliveryType);
+        $('#gridHeader').text('Deliveries of this month');
+
+        $(".First").addClass('highlight-div');
+        $(".Second").removeClass('highlight-div');
+        $(".Third").removeClass('highlight-div');
+        $(".Fourth").removeClass('highlight-div');
+        $(".Fifth").removeClass('highlight-div');
+        $(".Sixth").removeClass('highlight-div');
+        $(".Seventh").removeClass('highlight-div');
+
+        ShowCustomerList(deliveryType);
+    });
+
+    $('#deliveredYesterdayId').on('click', function () {
+        var deliveryType = "Yesterday";
+        $('#orderType').val(deliveryType);
+        $('#gridHeader').text('Deliveries of yesterday');
+
+        $(".First").removeClass('highlight-div');
+        $(".Second").removeClass('highlight-div');
+        $(".Third").addClass('highlight-div');
+        $(".Fourth").removeClass('highlight-div');
+        $(".Fifth").removeClass('highlight-div');
+        $(".Sixth").removeClass('highlight-div');
+        $(".Seventh").removeClass('highlight-div');
+
+        ShowCustomerList(deliveryType);
+    });
+
+    $('#deliveryTodayId').on('click', function () {
+        var deliveryType = "Today";
+        $('#orderType').val(deliveryType);
+        $('#gridHeader').text('Deliveries of today');
+
+        $(".First").removeClass('highlight-div');
+        $(".Second").removeClass('highlight-div');
+        $(".Third").removeClass('highlight-div');
+        $(".Fourth").addClass('highlight-div');
+        $(".Fifth").removeClass('highlight-div');
+        $(".Sixth").removeClass('highlight-div');
+        $(".Seventh").removeClass('highlight-div');
+
+        ShowCustomerList(deliveryType);
+    });
+
+    $('#deliveryTomorrowId').on('click', function () {
+        var deliveryType = "Tomorrow";
+        $('#orderType').val(deliveryType);
+        $('#gridHeader').text('Deliveries of tomorrow');
+
+        $(".First").removeClass('highlight-div');
+        $(".Second").addClass('highlight-div');
+        $(".Third").removeClass('highlight-div');
+        $(".Fourth").removeClass('highlight-div');
+        $(".Fifth").removeClass('highlight-div');
+        $(".Sixth").removeClass('highlight-div');
+        $(".Seventh").removeClass('highlight-div');
+
+        ShowCustomerList(deliveryType);
+    });
+
+    $('#inProgressStoresId').on('click', function () {
+        var deliveryType = "InProgress";
+        $('#orderType').val(deliveryType);
+        $('#gridHeader').text('InProgress stores this month');
+
+        $(".First").removeClass('highlight-div');
+        $(".Second").removeClass('highlight-div');
+        $(".Third").removeClass('highlight-div');
+        $(".Fourth").removeClass('highlight-div');
+        $(".Fifth").addClass('highlight-div');
+        $(".Sixth").removeClass('highlight-div');
+        $(".Seventh").removeClass('highlight-div');
+
+        ShowCustomerListForDriver(deliveryType);
+    });
+
+    $('#completedStoresId').on('click', function () {
+        var deliveryType = "Completed";
+        $('#orderType').val(deliveryType);
+        $('#gridHeader').text('Completed stores of this month');
+
+        $(".First").removeClass('highlight-div');
+        $(".Second").removeClass('highlight-div');
+        $(".Third").removeClass('highlight-div');
+        $(".Fourth").removeClass('highlight-div');
+        $(".Fifth").removeClass('highlight-div');
+        $(".Sixth").addClass('highlight-div');
+        $(".Seventh").removeClass('highlight-div');
+
+        ShowCustomerListForDriver(deliveryType);
+    });
+
+    $('#pendingStoresId').on('click', function () {
+        var deliveryType = "Pending";
+        $('#orderType').val(deliveryType);
+        $('#gridHeader').text('Pending stores of this month');
+
+        $(".First").removeClass('highlight-div');
+        $(".Second").removeClass('highlight-div');
+        $(".Third").removeClass('highlight-div');
+        $(".Fourth").removeClass('highlight-div');
+        $(".Fifth").removeClass('highlight-div');
+        $(".Sixth").removeClass('highlight-div');
+        $(".Seventh").addClass('highlight-div');
+
+        ShowCustomerList(deliveryType);
+    });
+
+
+    function ShowCustomerList(deliveryType) {
+        $("#orderListForDriver").hide();
+        $("#orderList").show();
+        $.ajax({
+            type: "GET",
+            url: "/Home/GetCustomerList",
+            data: {
+                'deliveryType': deliveryType, 'isFromDashboard': 'Yes'
+            },
+            success: function (response) {
+                console.log(response);
+                var gridDataSource = response.returnvalue;
+                $('#orderList').kendoGrid({
+                    height: 400,
+                    scrollable: true,
+                    selectable: true,
+                    sortable: false,
+                    filterable: true,
+                    editable: false,
+                    resizable: true,
+                    dataSource: gridDataSource,
+                    columns: [
+                        { field: "customerId", title: "Customer Id", width: 100, media: "(min-width: 150px;)", filterable: false, hidden: true },
+                        { field: "accountName", title: "Customer Name", width: 140, media: "(min-width: 150px;)", filterable: false },
+                        { field: "shippingStreet", title: "Shipping Street", width: 100, media: "(min-width: 100px;)", filterable: false  },
+                        { field: "shippingCity", title: "Shipping City", width: 100, media: "(min-width: 100px;)", filterable: false  },
+                        { field: "shippingState", title: "Shipping State", width: 100, media: "(min-width: 100px;)", filterable: false  },
+                        { field: "shippingCode", title: "Shipping Code", width: 120, media: "(min-width: 150px;)", filterable: false },
+                        { field: "deliveryDate", title: "Delivery Date", width: 120, media: "(min-width: 150px;)", filterable: false },
+                        { field: "userName", title: "Driver Name", width: 100, media: "(min-width: 100px;)", filterable: false, hidden: true }
+                    ]
+                });
+            }
+        });
+    }
+
+    function ShowCustomerListForDriver(deliveryType) {
+        $("#orderList").hide();
+        $("#orderListForDriver").show();
+        $.ajax({
+            type: "GET",
+            url: "/Home/GetCustomerList",
+            data: {
+                'deliveryType': deliveryType, 'isFromDashboard': 'Yes'
+            },
+            success: function (response) {
+                console.log(response);
+                var gridDataSource = response.returnvalue;
+                $('#orderListForDriver').kendoGrid({
+                    height: 400,
+                    scrollable: true,
+                    selectable: true,
+                    sortable: false,
+                    filterable: true,
+                    editable: false,
+                    resizable: true,
+                    dataSource: gridDataSource,
+                    columns: [
+                        { field: "customerId", title: "Customer Id", width: 100, media: "(min-width: 100px;)", filterable: false, hidden: true },
+                        { field: "accountName", title: "Customer Name", width: 100, media: "(min-width: 100px;)", filterable: false },
+                        { field: "shippingStreet", title: "Shipping Street", width: 100, media: "(min-width: 100px;)", filterable: false },
+                        { field: "shippingCity", title: "Shipping City", width: 100, media: "(min-width: 100px;)", filterable: false },
+                        { field: "shippingState", title: "Shipping State", width: 100, media: "(min-width: 100px;)", filterable: false },
+                        { field: "shippingCode", title: "Shipping Code", width: 100, media: "(min-width: 100px;)", filterable: false },
+                        { field: "deliveryDate", title: "Delivery Date", width: 100, media: "(min-width: 100px;)", filterable: false },
+                        { field: "userName", title: "Driver Name", width: 100, media: "(min-width: 100px;)", filterable: false }
+                    ]
+                });
+            }
+        });
+    }
+
+    function orderMainList() {
+        var orderType = $('#orderType').val();
+        
+        if (orderType == 'InProgress')
+        {
+            window.location = '/ShipmentTracking/ProgressStores';
+        }
+        else if (orderType == 'Completed')
+        {
+            window.location = '/ShipmentTracking/CompletedStores';
+        }
+        else if (orderType == 'Pending') 
+        {
+            window.location = '/ShipmentTracking/PendingStores';
+        }
+        else
+        {
+            window.location = '/Home/CustomerOrderDeliveries?orderType=' + orderType;
+        }
+    }
+</script>
+
+<style>
+    .card {
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+        transition: 0.3s;
+        border-radius: 5px;
+    }
+
+    .card:hover {
+        box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+    }
+
+    .container {
+        padding: 2px 16px;
+    }
+
+    .highlight-div{
+        border-radius: 5px!important;
+    }
+</style>
+

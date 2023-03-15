@@ -1,0 +1,223 @@
+﻿<style>
+    @@media (max-width: 767px) {
+        colgroup col:nth-child(1), colgroup col:nth-child(2), colgroup col:nth-child(3), colgroup col:nth-child(4), colgroup col:nth-child(5) {
+            width: 30px !important;
+        }
+
+        
+
+        .k-grid-header th.k-with-icon .k-link {
+            margin-right: 1.3em !important;
+            font-family: Gilroy !important;
+            font-size: 6px !important;
+        }
+
+        .btn {
+            font-size: 10px !important;
+            font-family: Gilroy;
+        }
+
+        .k-grid table {
+            font-size: 6px !important;
+        }
+
+        .table td.fit,
+        .table th.fit {
+            white-space: nowrap;
+            width: 0.1%;
+        }
+
+        span.k-icon.k-i-calendar {
+            background-size: 322px 330px !important;
+        }
+
+        span.k-icon.k-i-arrow-s {
+            background-size: 297px 329px !important;
+        }
+
+        .k-grid-header th.k-header {
+            vertical-align: middle;
+            font-family: Gilroy;
+            font-size: 6px;
+        }
+
+        ,
+    }
+
+    .numberOfPostersZero {
+        /* background-color: lawngreen !important;
+        font-weight: bold !important;*/
+    }
+</style>
+
+@{
+    ViewBag.Title = "All Invoice List";
+}
+
+<div class="col-md-12">
+    <div class="box box-primary">
+        <div class="box-header with-border">
+            <h3 class="box-title">@ViewBag.Title</h3>
+            <div style="float: right">
+                <button class="btn" id="btnExport">
+                    <img src="~/images/icons/file-excel.svg" title="Export All Invoices List" alt="Export All Invoices List" style="width: 40px; height: 35px">
+                </button>
+            </div>
+        </div>
+
+        <div class="box-body">
+            <div id="InvoiceList"></div>
+        </div>
+    </div>
+</div>
+
+<div id="window">
+    <img id="invoiceImageUrl" src="#" style="width: 100%; height: 100%" />
+</div>
+
+<script id="actionTemplate" type="text/x-kendo-template">
+    <a style="font-size:11px; text-decoration: none;" href="/Invoice/Download?invoiceId=#= invoiceHeaderId #" class="btn btn-small btn-info">Download</a>
+</script>
+
+<script id="linkTemplate" type="text/x-kendo-template">
+    <a href="javascript:openInvoiceImagePopup(#= invoiceHeaderId #)">#= invoiceSerialNo #</a>
+</script>
+
+<script type="text/javascript">
+
+    var url = "/Customer/GetInvoiceList";
+
+    $(document).ready(function () {
+        
+        var windowOptions = {
+            actions: ["Minimize", "Maximize", "Close"],
+            width: "500px",
+            height: "500px",
+            title: "Invoice Image",
+            visible: false,
+        };
+        $("#window").kendoWindow(windowOptions);
+        
+        function ShowInvoiceList() {
+            $.ajax({
+                type: "GET",
+                url: url,
+                contentType: false,
+                processData: false,
+                success: function (response) {
+                    console.log(response);
+                    var gridDataSource = response.returnvalue;
+                    $("#InvoiceList").kendoGrid({
+                        dataSource: gridDataSource,
+                        scrollable: true,
+                        filterable: true,
+                        resizable: true,
+                        pageable: {
+                            refresh: true,
+                            input: true,
+                            pageSize: 20,
+                            numeric: false,
+                            pageSizes: [20, 50, 100, 200]
+                        },
+                        sortable: true,
+                        columns: [
+                            {
+                                field: "invoiceSerialNo", title: "Invoice Serial No. #", width: 100, media: "(min-width: 100px;)", filterable: false, hidden: false,
+                                template: kendo.template($("#linkTemplate").html())
+                            },
+                            { field: "accountName", title: "Account Name", width: 100, media: "(min-width: 100px;)", filterable: false },
+                            { field: "invoiceHeaderId", title: "Account #", width: 100, media: "(min-width: 100px;)", filterable: false, hidden: true },
+                            { field: "actualInvoiceAmount", title: "Invoice Amount", width: 100, media: "(min-width: 100px;)", filterable: false, format: "${0:c2}" },
+                            { field: "invoiceDateWithFormat", title: "Invoice Date", width: 100, media: "(min-width: 100px;)", filterable: false },
+                            {
+                                title: "Action", width: 100, media: "(min-width: 100px;)",
+                                template: kendo.template($("#actionTemplate").html())
+                            },
+                        ]
+                    });
+
+                    function searchInGrid() {
+                        var searchValue = $('#searchBox').val();
+
+                        $("#InvoiceList").data("kendoGrid").dataSource.filter({
+                            logic: "or",
+                            filters: [
+                                {
+                                    field: "totalInvoiceAmount",
+                                    operator: "contains",
+                                    value: searchValue
+                                },
+                            ]
+                        });
+                    }
+
+                    $(".k-grid-Create").click(function (e) {
+                        window.location.href = createUrl;
+                    });
+
+                    $("#btnSearch").click(function () {
+                        searchInGrid();
+                    });
+
+                    $('#searchBox').mouseup(function () {
+                        setTimeout(function () {
+                            if ($('#searchBox').val() === '') {
+                                $("#InvoiceList").data("kendoGrid").dataSource.filter({});
+                            };
+                        }, 1)
+                    });
+
+                    $("#searchBox").keyup(function (event) {
+                        if (event.keyCode === 13) {
+                            searchInGrid();
+                        }
+                    });
+                }
+            });
+        }
+        ShowInvoiceList();
+    });
+
+    function openInvoiceImagePopup(invoiceId) {
+        const url = `/Invoice/ViewImage?invoiceId=${invoiceId}`;
+
+        document.getElementById("invoiceImageUrl").src = url;
+
+        //popupWindow.open();
+        const popup = $("#window").data("kendoWindow");
+
+        popup.open();
+        popup.center();
+    }
+
+    $("#btnExport").click(function (e) {
+
+        var dataSource = $("#InvoiceList").data("kendoGrid").dataSource;
+        var filteredDataSource = new kendo.data.DataSource({
+            data: dataSource.data(),
+            filter: dataSource.filter()
+        });
+
+        filteredDataSource.read();
+        var data = filteredDataSource.view();
+
+        const csvString = arrayToCSV(data);
+        const blob = new Blob([csvString], { type: 'text/csv' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'AllInvoices.csv';
+        document.body.appendChild(link);
+        link.click();
+        e.preventDefault();
+    });
+
+    function arrayToCSV(array) {
+        let csvString = 'Invoice Serial No.,Account Name,Invoice Amount,Invoice Date\n'; // Add the headers
+        for (let i = 0; i < array.length; i++) {
+            const object = array[i];
+            csvString += `"${object.invoiceSerialNo}","${object.accountName}","${object.actualInvoiceAmount}","${object.invoiceDateWithFormat}"\n`;
+        }
+        return csvString;
+    }
+</script>
+

@@ -1,0 +1,117 @@
+﻿@model PosterDelivery.Utility.EntityModel.Registration
+
+@section Styles {
+    <style>
+      .item-value {
+        font-weight: bold;
+        font-size: 16px;
+      }
+
+      .item-header {
+        font-size: 14px;
+      }
+    </style>    
+}
+
+<div class="col-md-12">
+    <div class="box box-primary">
+        <form id="userForm">
+            <div class="box-header with-border">
+                <h3 class="box-title">Profile</h3>
+            </div>
+
+            <div class="box-body">
+                <div class="form-group-sm">
+                    <div class="row">
+                        <input id="id" name="userId" type="hidden" value="@Model.UserId" />
+                        <div class="col-md-2"></div>
+                        <div class="col-md-8">
+   @*                         <div class="row justify-content-center" style="margin-top:5px">
+                                <span style="width: ">First Name:</span>
+                                <span>@Model.FirstName</span>
+                            </div>*@
+
+
+                            <div class="row" style="margin-top:5px">
+                                <div class="offset-md-4 col-md-2">
+                                    <span class="item-header">First Name</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <span class="item-value">@Model.FirstName</span>
+                                </div>
+                            </div>
+                            <div class="row" style="margin-top:5px">
+                                <div class="offset-md-4 col-md-2">
+                                    <span class="item-header">Middle Name</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <span class="item-value">@Model.MiddleName</span>
+                                </div>
+                            </div>
+                            <div class="row" style="margin-top:5px">
+                                <div class="offset-md-4 col-md-2">
+                                    <span class="item-header">Last Name</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <span class="item-value">@Model.LastName</span>
+                                </div>
+                            </div>
+                            <div class="row" style="margin-top:5px">
+                                <div class="offset-md-4 col-md-2">
+                                    <span class="item-header">Email</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <span class="item-value">@Model.EmailId</span>
+                                </div>
+                            </div>
+                            <div class="row" style="margin-top:5px">
+                                <div class="offset-md-4 col-md-2"><span class="item-header">Username</span></div>
+                                <div class="col-md-4">
+                                    <span class="item-value">@Model.UserName</span>
+                                </div>
+                            </div>
+
+                            <div class="row" style="margin-top:5px">
+                                <div class="offset-md-4 col-md-2"><span class="item-header">User Role</span></div>
+                                <div class="col-md-4">
+                                    <span class="item-value">@Model.UserRole</span>
+                                </div>
+                            </div>
+
+                            <div class="row" style="margin-top:5px">
+                                <div class="offset-md-4 col-md-2">
+                                    <span class="item-header">Active</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <span class="item-value">@(Model.IsActive == "1" ? "Active" : "Inactive")</span>
+                                </div>
+                            </div>
+
+                            <div class="row" style="margin-top:5px">
+                                <div class="offset-md-4 col-md-2">
+                                    <span class="item-header">Last Login</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <span class="item-value">@(Model.LastLoginFriendly)</span>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="col-md-2"> </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="wisl-panel-footer text-center">
+        <a href="/User/AddUser?UserId=@Model.UserId" class="btn btn-info" data-role="button">Edit</a>
+
+    </div>
+</div>
+
+<script type="text/javascript">
+
+</script>
+
+
+

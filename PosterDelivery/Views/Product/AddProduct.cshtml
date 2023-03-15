@@ -1,0 +1,288 @@
+﻿@model PosterDelivery.Utility.EntityModel.Product
+@{
+    //ViewBag.Title = "Add Customer";
+}
+
+<div class="col-md-12">
+    <div class="box box-primary">
+        <form id="productForm">
+            <div class="box-header with-border">
+                @if (Model.ProductId > 0)
+                {
+                    <h3 class="box-title">Edit Product</h3>
+                }
+                else
+                {
+                    <h3 class="box-title">Add Product</h3>
+                }
+            </div>
+
+            <div class="box-body">
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <div class="row">
+                                    <input id="id" type="hidden" value="@Model.ProductId" />
+                                    <div class="col-md-2">
+                                        <label for="productSerial">Product Serial *</label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input id="productSerial" name="productSerial" value="@Model.ProductSerial" placeholder="Product Serial" type="text" class="form-control" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="productName">Product Name *</label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input id="productName" name="productName" class="form-control" value="@Model.ProductName" placeholder="Product Name" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        <label for="categoryId">Category *</label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <select class="form-control" placeholder="Select Product Category" id="categoryId" name="categoryId" required>
+                                            @*<option value="" disabled selected>Select Product Category</option>*@
+                                            @if (Model != null)
+                                            {
+                                                foreach (var item in Model.productCategories)
+                                                {
+
+                                                    if (item.CategoryName != null)
+                                                    {
+                                                        if(item.CategoryId == 0) {
+                                                            // force the value to be blank for CategoryId 0 which is just a placeholder
+                                                            // this enables validation
+                                                            <option value="" selected="selected">
+                                                                @item.CategoryName
+                                                            </option>                                                            
+                                                        }
+                                                        else if(item.CategoryId==Model.CategoryId){
+                                                            <option value="@item.CategoryId" selected="selected">
+                                                                @item.CategoryName
+                                                            </option>
+                                                        }
+                                                        else{
+                                                            <option value="@item.CategoryId">
+                                                                @item.CategoryName
+                                                            </option>
+                                                        }
+                                                    }
+
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="productPrice">Product Price *</label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="number" id="productPrice" name="productPrice" min="0" class="form-control" placeholder="Product Price" value="@Model.ProductPrice" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label for="contactPhone">Product Image</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <label style="width: 100%;">
+                                            <input type="file" id="productImg" style="width: 100% !important;display:block; margin-bottom:2%;" 
+                                            class="mendatory" value="@Model.ProductImageName"
+                                            accept="image/png, image/jpeg, image/jpg;capture=camera" onchange="validateFileSize(this)" />
+                                        </label>
+                                        <div>
+                                            @if (Model.ProductImagePath?.Length > 0) {
+                                                <img id="productImagePreview" src="@($"/Product/ProductImage?filePath={Model.ProductImagePath}") " height="185" width="185" />
+                                            } else {
+                                                <img id="productImagePreview" src="~/images/Default_Image.png" height="185" width="185" />
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label for="contactName">Barcode Image</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <label style="width:100%;">
+                                            @*<input type="button" id="generateBarcode" onclick="generateQRCode()" class="btn btn-primary btn-block btn-flat" style="width: 100% !important;display:block; margin-bottom:2%;" value="Generate Barcode" />*@
+
+                                            @if (Model.ProductId > 0) {
+                                                <img id="barcodeImagePreview" src="@Model.QrCodeInlineImage" height="240" width="240" />
+                                            } else {
+                                                <img id="barcodeImagePreview" src="~/images/Default_Image.png" height="185" width="185" />
+                                            }
+
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="wisl-panel-footer text-center">
+        <button type="button" class="btn btn-primary" id="btnSaveProduct" onclick="saveProductInformation()"><i class="fa fa-save" style="font-size:13px;color:white"></i> Save</button>
+        <button type="button" class="btn btn-primary" id="btnClear" onclick="clearForm()"><i class="fa fa-undo" style="font-size:13px;color:white"></i> Clear</button>
+        <button type="button" class="btn btn-primary" id="backtolist" onclick="backToList()"><i class="fa fa-backward" style="font-size:13px;color:white"></i> Back</button>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    document.addEventListener("DOMContentLoaded", function (event) {
+        document.getElementById("productImg").onchange = event => 
+        {
+            const image = document.getElementById('productImagePreview');
+            image.src = URL.createObjectURL(event.target.files[0])
+        }
+    });
+
+
+
+    function generateQRCode() {
+        if ($('#productSerial').val() != "" && $('#productName').val() != "") {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    $('#barcodeImagePreview')
+                        .attr('src', e.target.result)
+                        .width(185)
+                        .height(160);
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        else {
+            alert('Please fill up mandatory field!!');
+        }
+    }
+
+    function saveProductInformation() {
+        $("#productForm").validate({
+            rules: {
+                productSerial: "required",
+                productName: "required",
+                categoryId: "required",
+                productPrice: "required"
+            },
+            messages: {
+                productSerial: "Product Serial Required!!",
+                productName: "Product Name Required!!",
+                productPrice: "Product Price Required!!",
+                categoryId: "Category Required!!"
+            },
+            errorElement: "div"
+        });
+
+        if ($("#productForm").valid()) {
+
+            debugger;
+            var formData = new FormData();
+
+            var file = document.getElementById('productImg');
+            if (file.files.length > 0) {
+                for (var i = 0; i < file.files.length; i++) {
+                    formData.append("productImage", file.files[i]);
+                }
+            }
+
+            formData.append('productId', $('#id').val());
+            formData.append('productSerial', $('#productSerial').val());
+            formData.append('productName', $('#productName').val());
+            formData.append('categoryId', $('#categoryId').val());
+            formData.append('productPrice', $('#productPrice').val());
+            //formData.append('isActive', isActive);
+
+            Loading(true);
+
+            $.ajax({
+                type: "POST",
+                url: "/Product/SaveProduct",
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (respose) {
+                    Loading(false);
+                    console.log(respose);
+                    if (respose.output === "Success") {
+                        swal("Success", respose.msg, "success");
+                        window.location.href = "/Product/ProductList";
+                        return false;
+                    }
+                    else {
+                        swal("Oops", respose.msg, "error");
+                        return false;
+                    }
+                },
+                error: function (respose) {
+                    Loading(false);
+                    swal("Oops!", respose.msg, "error");
+                    return false;
+                },
+            });
+        }
+        else {
+            alert('Please fill up mandatory field!!');
+        }
+    }
+
+    function backToList() {
+        window.location = "/Product/ProductList";
+    }
+
+    function clearForm() {
+        $('#productSerial').val("");
+        $('#productName').val("");
+        $('#categoryId').val("");
+        $('#productPrice').val("");
+    }
+
+    function validateFileSize(input) {
+        var fileSize = input.files[0].size / 1024 / 1024; // in MiB
+        if (fileSize > 5) {
+            swal("Oops", "File size exceeds 5 MB", "error")
+            return false;
+        }
+        return true;
+    }
+
+</script>
+
+<style type="text/css">
+    .error {
+        border-color: red !important;
+        display: block;
+    }
+
+    div.error {
+        color: red;
+        display: inline;
+        float: left;
+    }
+</style>

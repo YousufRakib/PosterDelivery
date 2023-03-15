@@ -1,0 +1,141 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Poster Delivery</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+    <link href="~/Custom/css/login.css" rel="stylesheet" />
+    <link href="~/Kendo/Content/bootstrap.css" rel="stylesheet" />
+    <link href="~/Kendo/theme2/assets/css/AdminLTE.min.css" rel="stylesheet" />
+    <link href="~/Kendo/Content/loading/loading.css" rel="stylesheet" />
+    <link href="~/Kendo/Content/css/font-awesome.css" rel="stylesheet" />
+   
+
+    <script src="~/Kendo/Scripts/respond.js"></script>
+
+</head>
+<body class="hold-transition login-page">
+
+    <div class="login-box">
+        <div class="login-logo wrap">
+            <img src="~/images/logo.png" height="150" style="margin-top:6%;" />
+            <div class="logo">Poster Delivery</div>
+        </div>
+
+        <div class="login-box-body">
+            <form id="loginForm">
+                <div id="message" class="alert alert-warning" style="display:none"></div>
+                <div class="form-group has-feedback">
+                    <input type="text" id="emailId" class="form-control" style="padding-right: 5%; border-radius: 50px; font-size: 22px; padding: 24px 18px; font-family: Gilroy;" placeholder="Email/Username" value="" autofocus>
+                </div>
+                <div class="form-group has-feedback">
+                    <input type="password" id="password" class="form-control" style="padding-right: 5%; border-radius: 50px; font-size: 22px; padding: 24px 18px; font-family: Gilroy;" placeholder="Password" value="" />
+                </div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <input style="border-radius: 20px;" type="button" id="submitButton" onclick="saveData()" id="btnLogin" class="btn btn-primary btn-block btn-flat" value="Sign In">
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="~/Kendo/Scripts/jquery-2.1.3.js"></script>
+    <script src="~/Kendo/theme2/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/Kendo/Content/loading/loading.js"></script>
+
+    <script type="text/javascript">
+
+        const divs = document.querySelectorAll('.toggle-password');
+
+        divs.forEach(el => el.addEventListener('click', event => {
+            $(this).toggleClass("fa-eye fa-eye-slash");
+            var input = $("#password");
+            if (input.attr("type") === "password") {
+                input.attr("type", "text");
+            } else {
+                input.attr("type", "password");
+            }
+        }));
+
+        //$("#loginForm").keyup(function (event) {
+        //    if (event.keyCode === 13) {
+        //        return SaveData();
+        //    }
+        //});
+
+        function keypressHandler(e)
+        {
+            if (e.which == 13)
+            {
+                e.preventDefault(); //stops default action: submitting form
+                $(this).blur();
+                $('#submitButton').focus().click();//give your submit an ID
+            }
+        }
+
+        $('#loginForm').keypress(keypressHandler);
+
+        function saveData() {
+            if ($('#emailId').val().trim() == '') {
+                $('#message').text('Please Enter Email/Username!!');
+                $('#message').show();
+                return false;
+            }
+            else if ($('#password').val().trim() == '') {
+                $('#message').text('Please Enter Password!!');
+                $('#message').show();
+                return false;
+            }
+            else {
+                var login = {
+                    EmailId: $('#emailId').val(),
+                    Password: $('#password').val()
+                };
+
+                var loginModel = JSON.stringify(login);
+
+                Loading(true);
+                $.ajax({
+                    type: "POST",
+                    url: "/User/Login",
+                    data: loginModel,
+                    dataType: "json",
+                    contentType: "application/json",
+                    success: function (respose) {
+                        Loading(false);
+                        if (respose.output === "Success") 
+                        {
+                            if (respose.returnvalue === "Driver") 
+                            {
+                                window.location.href = "/ShipmentTracking/PendingStoresForDriver";
+                                return false;
+                            }
+                            else
+                            {
+                                window.location.href = "/Home/Index";
+                                return false;
+                            }
+                        } 
+                        else 
+                        {
+                            $('#message').text(respose.msg);
+                            $('#message').show();
+                            return false;
+                        }
+                    },
+                    error: function (respose) {
+                        Loading(false);
+                        $('#message').text(respose?.responseJSON.msg);
+                        $('#message').show();
+                    },
+                });
+            }
+        }
+    </script>
+</body>
+</html>

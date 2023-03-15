@@ -1,0 +1,258 @@
+﻿@{
+    //ViewBag.Title = "Pending Stores";
+}
+
+<div class="col-md-12 p-0">
+    <div class="box box-primary">
+        <div class="box-header with-border">
+            <h3 class="box-title"></h3>
+            <div style="float: right">
+                <button class="btn" id="btnExport">
+                  <img src="~/images/icons/file-excel.svg" title="Export Pending Stores List" alt="Export Pending Stores List" style="width: 40px; height: 35px">
+                </button>
+            </div>
+        </div>
+
+        <div class="box-body">
+            <div id="CustomerList"></div>
+        </div>
+    </div>
+</div>
+
+<div id="AssignDriverModal" class="modal" role="dialog">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Assign Driver</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group-sm">
+                    <form id="assignDriverForm" enctype="multipart/form-data" method="post">
+                        <div class="col">
+                            <div class="col-md-12">
+                                <input type="hidden" id="CustomerId" />
+                                <div class="row" style="margin-top:5px">
+                                    <div class="col-md-5">
+                                        <label for="firstName">Select Driver *</label>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <select class="form-control" placeholder="Select Driver" id="driverList" name="driverList" required>
+                                            <option value="" disabled selected>Select Driver</option>
+                                            @if (ViewBag.DriverList != null)
+                                            {
+                                                foreach (var item in ViewBag.DriverList)
+                                                {
+                                                    if (item.UserName != null)
+                                                    {
+                                                        <option value="@item.UserId">
+                                                            @item.UserName
+                                                        </option>
+                                                    }
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-top:5px">
+                                    <div class="col-md-5">
+                                        <label for="txtActualDate">Actual Date </label>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <input class="form-control" id="txtActualDate" name="txtActualDate" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-12 text-center" style="margin-top:10px">
+                    <button type="button" id="btnSubmit" onclick="AssignDriver()" class="btn btn-success">Submit</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="actionTemplate" type="text/x-kendo-template">
+    <a style="font-size:11px; text-decoration: none;" target="_self" href="javascript:OpenAssignDriverPopup(#= customerId #)" class="btn btn-small btn-info">Assign Driver</a>
+</script>
+
+<script type="text/javascript">
+
+    var url = "/ShipmentTracking/GetPendingStores";
+
+    $(document).ready(function () {
+        $("#txtActualDate").kendoDatePicker({
+            format: "dd-MM-yyyy",
+            value: new Date(),
+            min: new Date(),
+            max: new Date(4000, 1, 1), 
+        });
+
+        const currentDate = new Date();
+        const month = currentDate.toLocaleString('default', { month: 'long' });
+        const year = currentDate.getFullYear();
+
+        $(".box-title").html("Pending Stores of " + month + ", " + year);
+        shipmentTrackingGrid();
+    });
+
+    function shipmentTrackingGrid() {
+        $.ajax({
+            type: "GET",
+            url: url,
+            dataType: "json",
+            success: function (response) {
+                console.log(response);
+                var gridDataSource = response.returnvalue;
+                $("#CustomerList").kendoGrid({
+                    dataSource: gridDataSource,
+                    scrollable: true,
+                    filterable: true,
+                    resizable: true,
+                    pageable: {
+                        refresh: true,
+                        input: true,
+                        pageSize: 20,
+                        numeric: false,
+                        pageSizes: [20, 50, 100, 200]
+                    },
+                    sortable: true,
+                    columns: [
+                        { field: "customerId", title: "Customer Id", width: 100, media: "(min-width: 100px;)", filterable: false, hidden: true },
+                        { field: "driverCustomerTrackId", title: "DriverCustomerTrackId", width: 100, media: "(min-width: 100px;)", filterable: false, hidden: true },
+                        { field: "accountName", title: "Account Name", width: 100, media: "(min-width: 100px;)", filterable: { extra: false } },
+                        { field: "shippingStreet", title: "Shipping Street", width: 100, media: "(min-width: 100px;)", filterable: { extra: false } },
+                        { field: "shippingCity", title: "Shipping City", width: 100, media: "(min-width: 100px;)", filterable: { extra: false } },
+                        { field: "shippingState", title: "Shipping State", width: 100, media: "(min-width: 100px;)", filterable: { extra: false } },
+                        { field: "shippingCode", title: "Shipping Code", width: 100, media: "(min-width: 100px;)",filterable: {extra: false}},
+                        { field: "deliveryDateString", title: "Delivery Date", width: 100, media: "(min-width: 100px;)",
+                            filterable: {
+                                operators: {
+                                    string: {
+                                        eq: "Equal to",
+                                        neq: "Not equal to"
+                                    }
+                                },
+                                extra: false
+                            }
+                        },
+                        {
+                            field: "actualDateString", title: "Actual Del Date", width: 100, media: "(min-width: 100px;)",
+                            filterable: {
+                                operators: {
+                                    string: {
+                                        eq: "Equal to",
+                                        neq: "Not equal to"
+                                    }
+                                },
+                                extra: false
+                            }
+                        },
+                        {
+                            title: "Action", width: 100, media: "(min-width: 100px;)",
+                            template: kendo.template($("#actionTemplate").html())
+                        },
+                    ]
+                });
+            }
+        });
+    }
+
+    function OpenAssignDriverPopup(CustomerId)
+    {
+        $("#CustomerId").val(CustomerId);
+        $("#AssignDriverModal").modal();
+    }
+
+    function AssignDriver()
+    {
+        $("#assignDriverForm").validate({
+            rules: {
+                driverList: "required"
+            },
+            messages: {
+                driverList: "Please select driver !!"
+            },
+            errorElement: "div"
+        });
+       
+        var from = $("#txtActualDate").val().split("-")
+        
+        var result = from[2].concat("-", from[1]);
+        var actualDate = result.concat("-", from[0]);
+
+        if ($("#assignDriverForm").valid()) {
+            var assignDriver = {
+                DriverId: $('#driverList').val(),
+                CustomerId: $('#CustomerId').val(),
+                ActualDateString: actualDate,
+                ActualProductsPicked: 0,
+                ActualProductsShipped: 0,
+                IsCompleted: 0,
+                IsActive: 1,
+            };
+
+            var driverModel = JSON.stringify(assignDriver);
+
+            debugger;
+
+            Loading(true);
+            $.ajax({
+                type: "POST",
+                url: "/ShipmentTracking/AssignDriver",
+                data: driverModel,
+                dataType: "json",
+                contentType: "application/json",
+                success: function (respose) {
+                    Loading(false);
+                    console.log(respose);
+                    if (respose.output === "Success") {
+                        swal("Success", respose.msg, "success");
+                        window.location.href = "/ShipmentTracking/PendingStores";
+                        return false;
+                    }
+                    else {
+                        swal("Oops", respose.msg, "error");
+                        return false;
+                    }
+                },
+                error: function (respose) {
+                    swal("Oops!", respose.msg, "error");
+                    return false;
+                },
+            });
+        }
+    }
+
+    $("#btnExport").click(function (e) {
+
+        var dataSource = $("#CustomerList").data("kendoGrid").dataSource;
+        var filteredDataSource = new kendo.data.DataSource({
+            data: dataSource.data(),
+            filter: dataSource.filter()
+        });
+
+        filteredDataSource.read();
+        var data = filteredDataSource.view();
+
+        const csvString = arrayToCSV(data);
+        const blob = new Blob([csvString], { type: 'text/csv' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'PendingStoresList.csv';
+        document.body.appendChild(link);
+        link.click();
+    });
+
+    function arrayToCSV(array) {
+        let csvString = 'Account Name,Shipping Street,Shipping Code,Delivery Date,Actual Del Date,Shipment Status\n'; // Add the headers
+        for (let i = 0; i < array.length; i++) {
+            const object = array[i];
+            csvString += `"${object.accountName}","${object.shippingStreet}","${object.shippingCode}","${object.deliveryDateString}","${object.actualDateString}","${object.shipmentStatus}"\n`;
+        }
+        return csvString;
+    }
+</script>
+

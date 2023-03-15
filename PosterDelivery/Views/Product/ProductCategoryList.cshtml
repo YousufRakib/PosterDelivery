@@ -1,0 +1,144 @@
+﻿@{
+    ViewBag.Title = "Product Category List";
+}
+
+<div class="col-md-12 p-0">
+    <div class="box box-primary">
+        @*   <div class="form-inline float-right">
+        <input type="search" id="searchBox" style="width: 300px;z-index:10;margin-right:10px" placeholder="Search..." class="k-textbox" />
+        <button id="btnSearch" class="btn btn-sm btn-info" style="margin-right:10px;z-index:10;"><i class="fa fa-search" style="color:white;"></i> Search</button>
+        </div>*@
+
+        <div class="box-header with-border">
+            <h3 class="box-title">@ViewBag.Title</h3>
+            <div style="float: right">
+                <button class="btn" id="btnExport">
+                  <img src="~/images/icons/file-excel.svg" title="Export Product Category List" alt="Export Product Category List" style="width: 40px; height: 35px">
+                </button>
+            </div>
+        </div>
+
+        <div class="box-body">
+            <div id="ProductCategoryList"></div>
+        </div>
+    </div>
+</div>
+<script id="actionTemplate" type="text/x-kendo-template">
+    <a style="font-size:11px; text-decoration: none;" target="_self" href="/Product/AddProductcategory?categoryId=#= categoryId #" class="btn btn-small btn-info">Edit</a>
+</script>
+
+<script type="text/javascript">
+
+    var url = "/Product/GetProductCategoryList";
+    var createUrl = "/Product/AddProductcategory";
+
+    $(document).ready(function () {
+        function ShowProductCategoryList() {
+            $.ajax({
+                type: "GET",
+                url: url,
+                contentType: false,
+                processData: false,
+                success: function (response) {
+                    console.log(response);
+                    var gridDataSource = response.returnvalue;
+                    $("#ProductCategoryList").kendoGrid({
+                        toolbar: [
+                            {
+                                name: "Create",
+                                text: "Create",
+                            },
+                        ],
+                        dataSource: gridDataSource,
+                        scrollable: true,
+                        filterable: true,
+                        pageable: {
+                            refresh: true,
+                            input: true,
+                            pageSize: 20,
+                            numeric: false,
+                            pageSizes: [10, 20, 50]
+                        },
+                        sortable: true,
+                        columns: [
+                            { field: "categoryId", title: "Id", width: 100, media: "(min-width: 100px;)", filterable: false },
+                            { field: "categoryName", title: "Category Name", width: 100, media: "(min-width: 100px;)", filterable: false },
+                            {
+                                title: "Action", width: 100, media: "(min-width: 100px;)",
+                                template: kendo.template($("#actionTemplate").html())
+                            },
+                        ]
+                    });
+
+                    function searchInGrid() {
+                        var searchValue = $('#searchBox').val();
+
+                        $("#ProductCategoryList").data("kendoGrid").dataSource.filter({
+                            logic: "or",
+                            filters: [
+                                {
+                                    field: "categoryName",
+                                    operator: "contains",
+                                    value: searchValue
+                                }
+                            ]
+                        });
+                    }
+
+                    $(".k-grid-Create").click(function (e) {
+                        window.location.href = createUrl;
+                    });
+
+                    $("#btnSearch").click(function () {
+                        searchInGrid();
+                    });
+
+                    $('#searchBox').mouseup(function () {
+                        setTimeout(function () {
+                            if ($('#searchBox').val() === '') {
+                                $("#ProductCategoryList").data("kendoGrid").dataSource.filter({});
+                            };
+                        }, 1)
+                    });
+
+                    $("#searchBox").keyup(function (event) {
+                        if (event.keyCode === 13) {
+                            searchInGrid();
+                        }
+                    });
+                }
+            });
+        }
+        ShowProductCategoryList();
+    });
+
+    $("#btnExport").click(function (e) {
+
+        var dataSource = $("#ProductCategoryList").data("kendoGrid").dataSource;
+        var filteredDataSource = new kendo.data.DataSource({
+            data: dataSource.data(),
+            filter: dataSource.filter()
+        });
+
+        filteredDataSource.read();
+        var data = filteredDataSource.view();
+
+        const csvString = arrayToCSV(data);
+        const blob = new Blob([csvString], { type: 'text/csv' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'ProductCategoryList.csv';
+        document.body.appendChild(link);
+        link.click();
+    });
+
+    function arrayToCSV(array) {
+        let csvString = 'Id,Category Name\n'; // Add the headers
+        for (let i = 0; i < array.length; i++) {
+            const object = array[i];
+            csvString += `"${object.categoryId}","${object.categoryName}"\n`;
+        }
+        return csvString;
+    }
+</script>
+

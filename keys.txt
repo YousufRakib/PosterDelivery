@@ -1,0 +1,21 @@
+GitHub repo:
+https://github.com/Jakob311/Posterdelivery
+
+Azure SQL
+
+ConnectionString:
+Data Source=tcp:posterdeliverydev13122022.database.windows.net;Initial Catalog=PosterDelivery_Dev; TrustServerCertificate=Yes;User Id=azureuser; Password=poster@123
+
+posterdeliverydev13122022.database.windows.net
+username: azureuser
+password: poster@123
+
+
+jacobkrapiva@hotmail.com
+Password1
+
+dev.azure.com/posterdelivery
+posterdelivery@hotmail.com
+jacob@jacob123
+
+

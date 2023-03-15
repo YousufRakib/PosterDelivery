@@ -1,0 +1,201 @@
+﻿@{
+    //ViewBag.Title = "Completed Stores";
+}
+
+<div class="col-md-12 p-0">
+    <div class="box box-primary">
+
+        <div class="box-header with-border">
+            <h3 class="box-title"></h3>
+            <div style="float: right">
+                <button class="btn" id="btnExport">
+                  <img src="~/images/icons/file-excel.svg" title="Export Completed Stores List" alt="Export Completed Stores List" style="width: 40px; height: 35px">
+                </button>
+            </div>
+        </div>
+
+        <form id="searchForm">
+            <div class="form-group">
+                <br />
+                <div class="row">
+                    <div class="col-md-7">
+                    </div>
+                    <div class="col-md-5">
+                        <div class="row">
+                            <div class="col-md-5">
+                            </div>
+                            <div class="col-md-4">
+                                <input id="deliveryDate" onchange="deliveryDateChange()" name="deliveryDate" class="form-control" style="padding-left: 1%;" />
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" onclick="searchDateWiseCompleteStores()" class="btn btn-primary ">Search</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <div class="box-body">
+            <div id="CustomerList"></div>
+        </div>
+
+    </div>
+</div>
+
+<script id="actionTemplate" type="text/x-kendo-template">
+    <a style="font-size:11px; text-decoration: none; target="_self" href="/ShipmentTracking/StartScanning/#= customerId #" class="btn btn-small btn-info">Arrive</a>
+</script>
+
+<script id="EditLinkTemplate" type="text/x-kendo-template">
+    <a style="font-size:11px; text-decoration: none;" target="_self" href="/ShipmentTracking/StartNonScanning?customerId=#= customerId #&driverCustomerTrackId=#= driverCustomerTrackId #&IsEdit=1">#= accountName #</a>
+</script>
+
+<script type="text/javascript">
+
+    var url = "/ShipmentTracking/GetCompletedStores";
+    
+    $(document).ready(function () {
+        $("#deliveryDate").kendoDatePicker({
+            start: "year",
+            depth: "year",
+            format: "MMMM-yyyy",
+            value: new Date(),
+            dateInput: true
+        });
+
+        var deliveryDate = $('#deliveryDate').val();
+
+        var deliveryDate = $('#deliveryDate').val();
+        const deliveryDateArray = deliveryDate.split("-");
+        
+        const month = deliveryDateArray[0];
+        const year = deliveryDateArray[1];
+        //const month = currentDate.toLocaleString('default', { month: 'long' });
+        //const year = currentDate.getFullYear();
+
+        $(".box-title").html("Completed Stores of " + month + ", " + year);
+
+        shipmentTrackingGrid(deliveryDate);
+    });
+
+    function deliveryDateChange() {
+        
+        var deliveryDate = $('#deliveryDate').val();
+        const deliveryDateArray = deliveryDate.split("-");
+        
+        const changedMonth = deliveryDateArray[0];
+        const changedYear = deliveryDateArray[1];
+        //const month = currentDate.toLocaleString('default', { month: 'long' });
+        //const year = currentDate.getFullYear();
+
+        $(".box-title").html("Completed Stores of " + changedMonth + ", " + changedYear);
+    }
+
+    function searchDateWiseCompleteStores() {
+        $("#searchForm").validate({
+            rules: {
+                deliveryDate: "required"
+            },
+            messages: {
+                deliveryDate: "Please select date!!"
+            },
+            errorElement: "div"
+        });
+
+        if ($("#searchForm").valid()) {
+            var deliveryDate = $("#deliveryDate").val();
+            shipmentTrackingGrid(deliveryDate);
+        }
+    }
+
+    function shipmentTrackingGrid(deliveryDate) {
+        $.ajax({
+            type: "GET",
+            url: url,
+            data: { 'deliveryDate': deliveryDate },
+            dataType: "json",
+            success: function (response) {
+                console.log(response);
+                var gridDataSource = response.returnvalue;
+                $("#CustomerList").kendoGrid({
+                    dataSource: gridDataSource,
+                    scrollable: true,
+                    filterable: true,
+                    resizable: true,
+                    pageable: {
+                        refresh: true,
+                        input: true,
+                        pageSize: 20,
+                        numeric: false,
+                        pageSizes: [20, 50, 100, 200]
+                    }, 
+                    sortable: true,
+                    columns: [
+                        { field: "customerId", title: "Customer Id", width: 100, media: "(min-width: 100px;)", filterable: false, hidden: true },
+                        { field: "driverCustomerTrackId", title: "DriverCustomerTrackId", width: 100, media: "(min-width: 100px;)", filterable: false, hidden: true },
+                        { field: "accountName", title: "Account Name", width: 100, media: "(min-width: 100px;)", filterable: { extra: false }, template: kendo.template($("#EditLinkTemplate").html()) },
+                        { field: "shippingStreet", title: "Shipping Street", width: 100, media: "(min-width: 100px;)", filterable: { extra: false } },
+                        { field: "shippingCity", title: "Shipping City", width: 100, media: "(min-width: 100px;)", filterable: { extra: false } },
+                        { field: "shippingState", title: "Shipping State", width: 100, media: "(min-width: 100px;)", filterable: { extra: false } },
+                        { field: "shippingCode", title: "Shipping Code", width: 100, media: "(min-width: 100px;)", filterable: { extra: false } },
+                        { field: "deliveryDateString", title: "Delivery Date", width: 100, media: "(min-width: 100px;)",
+                            filterable: {
+                                operators: {
+                                    string: {
+                                        eq: "Equal to",
+                                        neq: "Not equal to"
+                                    }
+                                },
+                                extra: false
+                            }
+                        },
+                        { field: "actualDateString", title: "Actual Del Date", width: 100, media: "(min-width: 100px;)",
+                            filterable: {
+                                operators: {
+                                    string: {
+                                        eq: "Equal to",
+                                        neq: "Not equal to"
+                                    }
+                                },
+                                extra: false
+                            }
+                        },
+                        { field: "numOfPosters", title: "Number Of Posters", width: 100, media: "(min-width: 100px;)", type: "number", filterable: { extra: false } },
+                        { field: "userName", title: "Driver Name", width: 100, media: "(min-width: 100px;)", filterable: { extra: false } }
+                    ]
+                });
+            }
+        });
+    }
+
+    $("#btnExport").click(function (e) {
+
+        var dataSource = $("#CustomerList").data("kendoGrid").dataSource;
+        var filteredDataSource = new kendo.data.DataSource({
+            data: dataSource.data(),
+            filter: dataSource.filter()
+        });
+
+        filteredDataSource.read();
+        var data = filteredDataSource.view();
+
+        const csvString = arrayToCSV(data);
+        const blob = new Blob([csvString], { type: 'text/csv' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'CompletedStoresList.csv';
+        document.body.appendChild(link);
+        link.click();
+    });
+
+    function arrayToCSV(array) {
+        let csvString = 'Account Name,Shipping Street,Shipping Code,Delivery Date,Actual Del Date,Shipment Status\n'; // Add the headers
+        for (let i = 0; i < array.length; i++) {
+            const object = array[i];
+            csvString += `"${object.accountName}","${object.shippingStreet}","${object.shippingCode}","${object.deliveryDateString}","${object.actualDateString}","${object.shipmentStatus}"\n`;
+        }
+        return csvString;
+    }
+</script>
+

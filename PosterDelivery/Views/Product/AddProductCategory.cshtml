@@ -1,0 +1,168 @@
+﻿@model PosterDelivery.Utility.EntityModel.ProductCategory
+@{
+    //ViewBag.Title = "Add ProducrCategory";
+}
+
+<head>
+    <link href="~/Kendo/Content/loading/loading.css" rel="stylesheet" />
+    <script src="~/Kendo/Content/loading/loading.js"></script>
+</head>
+
+<div class="col-md-12">
+    <div class="box box-primary">
+        <form id="categoryForm">
+            <div class="box-header with-border">
+                @if (Model.CategoryId > 0)
+                {
+                    <h3 class="box-title">Edit ProductCategory</h3>
+                }
+                else
+                {
+                    <h3 class="box-title">Add ProductCategory</h3>
+                }
+            </div>
+            <div class="box-body">
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <div class="row">
+                                    <input id="id" name="categoryId" type="hidden" value="@Model.CategoryId" />
+                                    <div class="col-md-2">
+                                        <label for="categoryName">Category Name *</label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input id="categoryName" name="categoryName" value="@Model.CategoryName" placeholder="Category Name" type="text" class="form-control" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @*@if (Model.CategoryId > 0)
+                    {
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <div class="row" style="margin-top:5px">
+                                        <div class="col-md-2">
+                                            <label for="isActive">Status</label>
+                                        </div>
+                                        <div class="col-md-6 radio-inline">
+                                            @if (Model.IsActive == "1")
+                                            {
+                                                <label style="width:80px;"><input type="radio" id="rdoActive" value="1" name="rdoIsActive" checked>&nbsp;Active</label>
+                                                <label style="width:110px;"><input type="radio" id="rdoInActive" name="rdoIsActive" value="0">&nbsp;Inactive</label>
+                                            }
+                                            else
+                                            {
+                                                <label style="width:80px;"><input type="radio" id="rdoActive" name="rdoIsActive" value="1">&nbsp;Active</label>
+                                                <label style="width:110px;"><input type="radio" id="rdoInActive" name="rdoIsActive" value="0" checked>&nbsp;Inactive</label>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }*@
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="wisl-panel-footer text-center">
+        <button type="button" onclick="saveCategoryInformation()" class="btn btn-primary"><i class="fa fa-save" style="font-size:13px;color:white"></i> Save</button>
+        <button type="button" onclick="clearForm()" class="btn btn-primary"><i class="fa fa-undo" style="font-size:13px;color:white"></i> Clear</button>
+        <button type="button" onclick="backToList()" class="btn btn-primary"><i class="fa fa-backward" style="font-size:13px;color:white"></i> Back</button>
+    </div>
+</div>
+
+<script type="text/javascript">
+    
+    function saveCategoryInformation() {
+        $("#categoryForm").validate({
+            rules: {
+                categoryName: "required"
+            },
+            messages: {
+                categoryName: "Category Name Required!!"
+            },
+            errorElement: "div"
+        });
+
+        if ($("#categoryForm").valid()) {
+            //var isActive = '1';
+
+            //if ($('#id').val() > 0) {
+            //    isActive = $('input[name=rdoIsActive]:checked').val();
+            //}
+
+            var addCategory = {
+                CategoryId: $('#id').val(),
+                CategoryName: $('#categoryName').val()
+                //IsActive: isActive
+            };
+
+            var categoryModel = JSON.stringify(addCategory);
+
+            Loading(true);
+
+            $.ajax({
+                type: "POST",
+                url: "/Product/AddProductCategory",
+                data: categoryModel,
+                dataType: "json",
+                contentType: "application/json",
+                success: function (respose) {
+                    Loading(false);
+                    console.log(respose);
+                    if (respose.output === "Success") {
+                        swal("Success", respose.msg, "success");
+                        window.location.href = "/Product/ProductCategoryList";
+                        return false;
+                    }
+                    else if (respose.output === "DataTypeIssue") {
+                        swal("Oops", respose.msg, "error");
+                        return false;
+                    }
+                    else {
+                        swal("Oops", respose.msg, "error");
+                        return false;
+                    }
+                },
+                error: function (respose) {
+                    swal("Oops!", respose.msg, "error");
+                    return false;
+                },
+            });
+        }
+    }
+
+    function clearForm() {
+        $('#accountName').val("");
+        $('#shippingStreet').val("");
+        $('#shippingCity').val("");
+        $('#shippingCode').val("");
+        $('#contactName').val("");
+        $('#contactPhone').val("");
+        $('#consignmentOrBuyer').val("");
+        $('#deliveryDay').val("");
+        $("#customerForm").validate().resetForm();
+    }
+
+    function backToList() {
+        window.location = "/Product/ProductCategoryList";
+    }
+</script>
+
+<style type="text/css">
+    .error {
+        border-color: red !important;
+        display: block;
+    }
+
+    div.error {
+        color: red;
+        display: inline;
+        float: left;
+    }
+</style>
